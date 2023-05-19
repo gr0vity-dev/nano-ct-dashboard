@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nano Node Builder</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</head>
+<script type="text/javascript">
+    window.files = {{ files|tojson }};    
+</script>
+<body>
+    <table id="myTable" class="display" style="width:100%">
+        <thead>
+            <tr>                
+                <th></th>
+                <th>Date</th>
+                <th>Version</th>
+                <th>Status</th>
+                <th>Duration</th>
+                <th>Test Count</th>
+                <th>Pass Count</th>
+                <th>Fail Count</th>                
+            </tr>
+        </thead>
+    </table>
+    
+</body>
+</html>
+
