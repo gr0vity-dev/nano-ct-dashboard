@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CT Results</title>
+    <title>nanocurrency CT Results</title>
     <!-- Include necessary CSS and JavaScript libraries -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -34,88 +34,123 @@
             color: green;
         }
 
+        .warn-status {
+            color: orange;
+        }
+
         .fail-status {
             color: red;
+        }
+
+        .nano-symbol {
+            display: inline-block;
+            width: 2em;
+            height: 2em;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                margin-left: 0;
+                margin-right: 0;
+                padding-left: 10px;
+                padding-right: 10px;
+                width: 100%;
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>CT Results</h1>
+        <h1><img src="https://content.nano.org/nano-currency-symbol/square-rounded-badge-white.svg" alt="Nano Symbol" class="nano-symbol"> nano-node CT Dashboard</h1>
+        <p>A series of <a href="https://github.com/gr0vity-dev/nanolab-configs/tree/main/quick_testing">automated integration tests</a> run on each commit and pull request.</p>
         <div class="form-group">
             <input id="search-input" type="text" class="form-control" placeholder="Search by Hash">
         </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Test Status</th>
-                    <th>Duration</th>
-                    <th>Test Started At</th>
-                    <th>Hash</th>
-                    <th>Test Count</th>
-                    <th>Pass Count</th>
-                    <th>Fail Count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in data %}
-                <tr class="expandable-row" data-toggle="collapse" data-target="#collapse-{{ loop.index }}">
-                    <td>{{ item.type }}</td>
-                    <td>                        
-                        {% if item.test_status == 'PASS' %}
-                            <span class="test-status-icon pass-status">&#10004;</span>
-                        {% else %}
-                            <span class="test-status-icon fail-status">&#10006;</span>
-                        {% endif %}                       
-                    </td>
-                    <td>{{ item.test_duration }}</td>
-                    <td>{{ item.test_started_at}}</td>
-                    <td><a href="{{ item.hash_url }}" target="_blank" class="hash-link">{{ item.hash }}</a></td>
-                    <td>{{ item.testcases|length }}</td>
-                    <td>{{ item.testcases|selectattr('status', 'equalto', 'PASS')|list|length }}</td>
-                    <td>{{ item.testcases|selectattr('status', 'equalto', 'FAIL')|list|length }}</td>
-                </tr>
-                <tr id="collapse-{{ loop.index }}" class="collapse">
-                    <td colspan="8">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Test Case</th>
-                                    <th>Status</th>
-                                    <th>Started At</th>
-                                    <th>Completed At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for testcase in item.testcases %}
-                                <tr>
-                                    <td>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Test Status</th>
+                        <th>Duration</th>
+                        <th>Test Age</th>
+                        <th>Hash</th>
+                        <th>Test Count</th>
+                        <th>Pass Count</th>
+                        <th>Fail Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                    <tr class="expandable-row" data-toggle="collapse" data-target="#collapse-{{ loop.index }}">
+                        <td><img src="{{ url_for('static', filename='images/' + item.type + '.png') }}"></td>
+                        <!-- <td>{{ item.type }}"</td> -->
+                        <td>                        
+                            {% if item.test_status == 'PASS' %}
+                                <span class="test-status-icon pass-status">&#10004;</span>
+                            {% elif item.test_status == 'WARN' %}
+                                <span class="test-status-icon warn-status">&#9888;</span>
+                            {% else %}
+                                <span class="test-status-icon fail-status">&#10006;</span>
+                            {% endif %}                       
+                        </td>
+                        <td>{{ item.test_duration }}s</td>
+                        <td>{{ item.test_age }}</td>
+                        <td><a href="{{ item.hash_url }}" target="_blank" class="hash-link">{{ item.hash }}</a></td>
+                        <td>{{ item.test_count }}</td>
+                        <td>{{ item.pass_count }}</td>
+                        <td>{{ item.fail_count }}</td>
+                    </tr>
+                    <tr id="collapse-{{ loop.index }}" class="collapse">
+                        <td colspan="8">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Test Case</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>                                        
+                                        <th>Deviation from Median</th>
+                                        <th>Duration Median</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for testcase in item.testcases %}
+                                    <tr>
                                         {% if testcase.status == 'PASS' %}
-                                            {{ testcase.testcase }}
+                                            <td>{{ testcase.testcase }} </td>
+                                            <td> <span class="test-status-icon pass-status">&#10004;</span></td>
+                                        {% elif testcase.status == 'WARN' %}
+                                            <td>{{ testcase.testcase }} </td>
+                                            <td><span class="test-status-icon warn-status">&#9888;</span></td>
                                         {% else %}
-                                            <a href="{{ testcase.report_url }}" target="_blank" class="testcase-link">{{ testcase.testcase }}</a>
+                                            <td><a href="{{ testcase.report_url }}" target="_blank" class="testcase-link">{{ testcase.testcase }}</a></td>                                       
+                                            <td><span class="test-status-icon fail-status">&#10006;</span></td>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if testcase.status == 'PASS' %}
-                                            <span class="test-status-icon pass-status">&#10004;</span>
-                                        {% else %}
-                                            <span class="test-status-icon fail-status">&#10006;</span>
+                                        <td>{{ testcase.duration }}s</td>                                        
+                                        {% if testcase.deviation_from_median_percent <= 0 %}
+                                            <td style="color: green;">                                        
+                                        {% elif testcase.deviation_from_median_percent > testcase.excess_threshold_percent %}
+                                            <td style="color: rgba(255, 0, 0, 0.676);">
+                                        {% elif testcase.deviation_from_median_percent > 0 %}
+                                            <td style="color: orange;">
                                         {% endif %}
-                                    </td>
-                                    <td>{{ testcase.started_at }}</td>
-                                    <td>{{ testcase.completed_at }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>   
-            
-        </table>
+                                            {{ testcase.deviation_from_median }}s ({{ testcase.deviation_from_median_percent }}%)</td>
+
+                                        <td>{{ testcase.commit_median_duration }}s</td>
+                                        
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                
+            </table>
+        </div>
         <nav id="pagination" aria-label="Pagination">
             <ul class="pagination">
                 <li class="page-item">
