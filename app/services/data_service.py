@@ -27,7 +27,7 @@ class DataService:
         items = mapping_data.get("items", [])
         for item in items:
             if item.get("repository_url") == repository_url:
-                return item.get("number")
+                return str(item.get("number"))
 
         return None
 
