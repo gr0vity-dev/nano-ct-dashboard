@@ -3,3 +3,4 @@ httpx
 asyncio
 quart
 hypercorn
+aioredis

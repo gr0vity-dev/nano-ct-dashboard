@@ -18,6 +18,7 @@ class CTResultsService:
 
     async def get_ct_results(self):
         # Pass instances to the data combiner
+        await self.cache_service.connect()
         data_combiner = DataCombiner(self.url_builder, self.datetime_helper)
 
         # Use the DataService to combine all parts of the application

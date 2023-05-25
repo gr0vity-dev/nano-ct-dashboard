@@ -1,21 +1,26 @@
-import time
+import aioredis
+from aioredis.client import Redis
+import pickle
 
 
 class CacheService:
     CACHE_TTL = 24 * 60 * 60  # Cache for a whole day
 
     def __init__(self):
-        self.cache = {}
+        self.redis = None
 
-    def get_cache(self, key):
-        cache_entry = self.cache.get(key)
-        if cache_entry and time.time(
-        ) - cache_entry['timestamp'] < cache_entry['ttl']:
-            return cache_entry['value']
+    async def connect(self):
+        self.redis = Redis.from_url('redis://redis')
 
-    def set_cache(self, key, value, ttl):
-        self.cache[key] = {
-            'value': value,
-            'timestamp': time.time(),
-            'ttl': ttl
-        }
+    async def close(self):
+        if self.redis:
+            self.redis.close()
+
+    async def get_cache(self, key):
+        value = await self.redis.get(key)
+        if value is not None:
+            return pickle.loads(value)
+
+    async def set_cache(self, key, value, ttl=CACHE_TTL):
+        value = pickle.dumps(value)
+        await self.redis.set(key, value, ex=ttl)
