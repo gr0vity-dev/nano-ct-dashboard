@@ -10,6 +10,7 @@ class CacheService:
         self.redis = None
 
     async def connect(self):
+        if self.redis: return  # initialise only if not yet initialised
         self.redis = Redis.from_url('redis://redis')
 
     async def close(self):
