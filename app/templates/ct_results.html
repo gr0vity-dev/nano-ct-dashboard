@@ -77,16 +77,16 @@
                         <th>Duration</th>
                         <th>Test Age</th>
                         <th>Hash</th>
-                        <th>Test Count</th>
-                        <th>Pass Count</th>
-                        <th>Fail Count</th>
+                        <th>PR</th> 
+                        <th>Commit Duration</th>                         
+                        <th>Pass</th>
+                        <th>Fail</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in data %}
                     <tr class="expandable-row" data-toggle="collapse" data-target="#collapse-{{ loop.index }}">
                         <td><img src="{{ url_for('static', filename='images/' + item.type + '.png') }}"></td>
-                        <!-- <td>{{ item.type }}"</td> -->
                         <td>                        
                             {% if item.test_status == 'PASS' %}
                                 <span class="test-status-icon pass-status">&#10004;</span>
@@ -98,8 +98,13 @@
                         </td>
                         <td>{{ item.test_duration }}s</td>
                         <td>{{ item.test_age }}</td>
-                        <td><a href="{{ item.hash_url }}" target="_blank" class="hash-link">{{ item.hash }}</a></td>
-                        <td>{{ item.test_count }}</td>
+                        <td><a href="{{ item.hash_url }}" target="_blank" class="hash-link">{{ item.hash[:8] }}</a></td> <!-- Display only the first 8 characters of the hash -->
+                        <td>{{ item.pull_request }}</td>   
+                        <td>
+                            {% if item.duration_from_first_pr_to_commit %}
+                                {{ item.duration_from_first_pr_to_commit }} days
+                            {% endif %}
+                        </td>                       
                         <td>{{ item.pass_count }}</td>
                         <td>{{ item.fail_count }}</td>
                     </tr>
