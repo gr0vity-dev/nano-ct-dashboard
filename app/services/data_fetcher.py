@@ -14,7 +14,10 @@ class DataFetcher:
                          url: str,
                          add_cache=True,
                          cache_duration=None):
-        data = await self.cache_service.get_cache(url)
+
+        data = await self.cache_service.get_cache(
+            url) if self.cache_service else None
+
         if data is not None:
             return data
 
@@ -28,7 +31,7 @@ class DataFetcher:
 
         if response.status_code == 200:
             data = response.json()
-            if add_cache:
+            if add_cache and self.cache_service:
                 ttl = cache_duration if cache_duration is not None else CacheService.CACHE_TTL
                 await self.cache_service.set_cache(url, data, ttl)
             return data
