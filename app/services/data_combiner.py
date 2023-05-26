@@ -88,18 +88,16 @@ class DataCombiner:
             if testcase.get("status") == "FAIL":
                 testcase["report_url"] = self.url_builder.get_report_url(
                     test_hash, testcase["testcase"])
-                builds_dict[test_hash][
-                    "github_url"] = self.url_builder.create_gh_url(
-                        builds_dict[test_hash])
         testcases.sort(key=lambda x: x['testcase'])
 
         overall_started_at = testrun.get('started_at')
         overall_completed_at = testrun.get('completed_at')
         overall_status = testrun.get('overall_status')
-        pr_number = testrun.get('pull_request')
+        pr_number = str(
+            testrun.get('pull_request')
+            or builds_dict[test_hash].get('pull_request', ""))
 
-        builds_dict[test_hash]['pull_request'] = str(
-            pr_number or builds_dict[test_hash].get('pull_request', ""))
+        builds_dict[test_hash]['pull_request'] = pr_number
         builds_dict[test_hash]['test_status'] = overall_status
         builds_dict[test_hash]['test_started_at'] = overall_started_at
         builds_dict[test_hash]['test_age'] = self.compute_time_elapsed(
@@ -115,8 +113,11 @@ class DataCombiner:
         builds_dict[test_hash][
             'test_duration'] = self.datetime_helper.get_duration_in_s(
                 overall_started_at, overall_completed_at)
-        builds_dict[test_hash]['hash_url'] = self.url_builder.create_gh_url(
-            builds_dict[test_hash])
+        builds_dict[test_hash]['hash_url'] = self.url_builder.create_hash_url(
+            test_hash)
+        if pr_number:
+            builds_dict[test_hash]['pr_url'] = self.url_builder.create_pr_url(
+                pr_number)
         builds_dict[test_hash]['testcases'] = testcases
 
     def compute_median_duration(self, list_entries: list):

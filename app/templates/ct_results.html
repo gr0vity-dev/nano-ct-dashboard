@@ -98,8 +98,12 @@
                         </td>
                         <td>{{ item.test_duration }}s</td>
                         <td>{{ item.test_age }}</td>
-                        <td><a href="{{ item.hash_url }}" target="_blank" class="hash-link">{{ item.hash[:8] }}</a></td> <!-- Display only the first 8 characters of the hash -->
-                        <td>{{ item.pull_request }}</td>   
+                        <td><a href="{{ item.hash_url }}" target="_blank" class="hash-link">{{ item.hash[:16] }}...</a></td>
+                        {% if item.pull_request %}
+                        <td><a href="{{ item.pr_url }}" target="_blank" class="hash-link">{{ item.pull_request }}</a> (rev. {{item.revision_number}})</td>
+                            {% else %}
+                            <td></td>
+                        {% endif %}
                         <td>
                             {% if item.duration_from_first_pr_to_commit %}
                                 {{ item.duration_from_first_pr_to_commit }} days

@@ -1,3 +1,6 @@
+base_url = "https://github.com/nanocurrency/nano-node"
+
+
 class GithubUrlBuilder:
 
     @staticmethod
@@ -15,3 +18,15 @@ class GithubUrlBuilder:
         else:
             # If it's a commit, link to the commit
             return f"{base_url}/commit/{data['hash']}"
+
+    @staticmethod
+    def create_hash_url(hash):
+        if not hash:
+            return None
+        return f"{base_url}/commit/{hash}"
+
+    @staticmethod
+    def create_pr_url(pr_number):
+        if not hash:
+            return None
+        return f"{base_url}/pull/{pr_number}"
