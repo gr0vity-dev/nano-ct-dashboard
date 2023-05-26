@@ -3,16 +3,13 @@ from app.services.data_fetcher import DataFetcher
 from app.services.data_combiner import DataCombiner
 
 from asyncio import gather
-from app.services.cache_service import CacheService
 from app.services.data_fetcher import DataFetcher
 from app.services.data_combiner import DataCombiner
 
 
 class DataService:
 
-    def __init__(self, cache_service: CacheService,
-                 data_combiner: DataCombiner, data_fetcher: DataFetcher):
-        self.cache_service = cache_service
+    def __init__(self, data_combiner: DataCombiner, data_fetcher: DataFetcher):
         self.data_combiner = data_combiner
         self.data_fetcher = data_fetcher
 

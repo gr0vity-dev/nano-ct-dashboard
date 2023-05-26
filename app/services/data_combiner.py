@@ -1,10 +1,39 @@
 import statistics
 from datetime import datetime
 from collections import defaultdict
-from typing import List
+from typing import List, Optional
 
 from app.services.github_helper import GithubUrlBuilder
 from app.services.helper_service import DateTimeHelper
+
+
+def get_timestamp(entry):
+    return datetime.strptime(entry["created_at"], "%Y-%m-%dT%H:%M:%SZ")
+
+
+def handle_pull_request(entry, pr_revisions, first_pr_timestamps):
+    pr_number = entry.get("pull_request")
+    if pr_number is None:
+        return
+
+    pr_revisions[pr_number] += 1
+    if pr_number not in first_pr_timestamps:
+        first_pr_timestamps[pr_number] = get_timestamp(entry)
+
+    entry["revision_number"] = pr_revisions[pr_number]
+
+
+def handle_commit(entry, pr_revisions, first_pr_timestamps):
+    pr_number = entry.get("pull_request", None)
+    entry["revision_number"] = pr_revisions.get(pr_number, 1)
+
+    if pr_number in first_pr_timestamps:
+        commit_timestamp = get_timestamp(entry)
+        duration = commit_timestamp - first_pr_timestamps[pr_number]
+        entry["duration_from_first_pr_to_commit"] = str(
+            duration.days) if duration.days != 0 else "<1"
+    else:
+        entry["duration_from_first_pr_to_commit"] = None
 
 
 class DataCombiner:
@@ -69,8 +98,8 @@ class DataCombiner:
         overall_status = testrun.get('overall_status')
         pr_number = testrun.get('pull_request')
 
-        builds_dict[test_hash]['pull_request'] = pr_number or builds_dict[
-            test_hash].get('pull_request')
+        builds_dict[test_hash]['pull_request'] = str(
+            pr_number or builds_dict[test_hash].get('pull_request', ""))
         builds_dict[test_hash]['test_status'] = overall_status
         builds_dict[test_hash]['test_started_at'] = overall_started_at
         builds_dict[test_hash]['test_age'] = self.compute_time_elapsed(
@@ -134,39 +163,16 @@ class DataCombiner:
         pull_request_revisions = defaultdict(int)
         first_pull_request_timestamps = {}
 
-        # Sort the data in ascending order by the 'created_at' field
-        data = sorted(data,
-                      key=lambda x: datetime.strptime(x["created_at"],
-                                                      "%Y-%m-%dT%H:%M:%SZ"))
+        data = sorted(data, key=get_timestamp)
 
         for entry in data:
-            pr_number = entry.get("pull_request")
-            if pr_number:
-                # Increment the revision number only for pull requests. Keep as is or deefault to 1 for commits
-                pull_request_revisions[pr_number] += 1 if entry[
-                    "type"] == "pull_request" else pull_request_revisions.get(
-                        pr_number, 1)
+            if entry["type"] == "pull_request":
+                handle_pull_request(entry, pull_request_revisions,
+                                    first_pull_request_timestamps)
+            elif entry["type"] == "commit":
+                handle_commit(entry, pull_request_revisions,
+                              first_pull_request_timestamps)
 
-                # Add the revision number to the entry
-                entry["revision_number"] = pull_request_revisions[pr_number]
-
-                # Compute the duration from the first pull request to the commit
-                if entry["type"] == "pull_request":
-                    if pr_number not in first_pull_request_timestamps:
-                        # This is the first time we've seen this pull request, so store its timestamp
-                        first_pull_request_timestamps[
-                            pr_number] = datetime.strptime(
-                                entry["created_at"], "%Y-%m-%dT%H:%M:%SZ")
-                elif entry["type"] == "commit":
-                    if pr_number in first_pull_request_timestamps:
-                        # We've seen a pull request with this number before, so compute the duration
-                        commit_timestamp = datetime.strptime(
-                            entry["created_at"], "%Y-%m-%dT%H:%M:%SZ")
-                        duration = commit_timestamp - first_pull_request_timestamps[
-                            pr_number]
-                        entry[
-                            "duration_from_first_pr_to_commit"] = "<1" if duration.days == 0 else str(
-                                duration.days)
         return data
 
     async def combine_data(self, builds, testruns):

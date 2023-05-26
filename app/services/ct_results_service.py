@@ -22,8 +22,7 @@ class CTResultsService:
         data_combiner = DataCombiner(self.url_builder, self.datetime_helper)
 
         # Use the DataService to combine all parts of the application
-        data_service = DataService(self.cache_service, data_combiner,
-                                   self.data_fetcher)
+        data_service = DataService(data_combiner, self.data_fetcher)
         # Finally, you can call the fetch_and_combine_data method
         combined_data = await data_service.fetch_and_combine_data()
         return combined_data
