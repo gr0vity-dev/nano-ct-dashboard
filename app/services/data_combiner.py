@@ -150,13 +150,10 @@ class DataCombiner:
                         ((duration - median_duration) / median_duration) *
                         100))
 
-                #set status of testcase to warning if duration exceeds excess_threshold_percent
                 excess_threshold_percent = 25
                 testcase["excess_threshold_percent"] = excess_threshold_percent
-                if testcase["duration"] > (
-                        1 +
-                    (excess_threshold_percent / 100)) * median_duration:
-                    testcase["status"] = "WARN"
+                #set status of testcase to warning if duration exceeds excess_threshold_percent    
+                if testcase["status"] == "PASS" and testcase["duration"] > (1 + (excess_threshold_percent / 100)) * median_duration: testcase["status"] = "WARN"
 
         return list_entries
 

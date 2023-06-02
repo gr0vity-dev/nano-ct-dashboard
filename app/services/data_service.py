@@ -14,7 +14,7 @@ class DataService:
         self.data_fetcher = data_fetcher
 
     async def fetch_pr_from_commit(self, testrun_data):
-        testrun_pr_mapping = "https://api.github.com/search/issues?q=sha:{}"
+        testrun_pr_mapping = "https://api.github.com/search/issues?q=sha:{}+is:pull-request"
         repository_url = "https://api.github.com/repos/nanocurrency/nano-node"
 
         mapping_url = testrun_pr_mapping.format(testrun_data["hash"])

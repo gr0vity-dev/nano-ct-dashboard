@@ -4,9 +4,10 @@ services:
     build: .
     ports:
       - "3235:5000"
-    depends_on:
-      - redis
-  redis:
-    image: "redis:alpine"
-    ports:
-      - "6379:6379"
+#    depends_on:
+#      - redis
+    networks:
+      - redis_network
+networks:
+  redis_network:
+    external: true

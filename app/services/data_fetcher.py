@@ -1,5 +1,6 @@
 from app.services.cache_service import CacheService
 from app.services.http_service import HttpService
+from quart import current_app
 import httpx
 
 
@@ -21,13 +22,16 @@ class DataFetcher:
         if data is not None:
             return data
 
+        headers = {'Authorization': f'token {current_app.config["GITHUB_TOKEN"]}'}
+
         try:
-            response = await self.http_service.get(url)
+            response = await self.http_service.get(url, headers=headers)
             response.raise_for_status()
         except httpx.HTTPStatusError as error:
             if 'rate limit' in str(error):
                 return None
-            raise error
+            else:
+                raise error
 
         if response.status_code == 200:
             data = response.json()
