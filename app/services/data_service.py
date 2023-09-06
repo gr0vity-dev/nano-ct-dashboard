@@ -41,9 +41,9 @@ class DataService:
 
         builds_res = await self.data_fetcher.fetch_data('build',
                                                         builds_url,
-                                                        cache_duration=5 * 60)
+                                                        add_cache=False)
         testruns_list = await self.data_fetcher.fetch_data(
-            'testrun_list', testruns_list_url)
+            'testrun_list', testruns_list_url, add_cache=False)
 
         # Build a list of tasks to run concurrently
         fetch_tasks = [

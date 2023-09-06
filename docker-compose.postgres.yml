@@ -6,7 +6,7 @@ services:
         container_name: postgres
         environment:
             POSTGRES_USER: nanoct
-            POSTGRES_PASSWORD: 346873fgsdhjgfhjs7328trz782gdfjhsghj
+            POSTGRES_PASSWORD: your-postgres-password
             POSTGRES_DB: nanoct
         volumes:
             - pgdata:/var/lib/postgresql/data
