@@ -7,7 +7,7 @@ services:
 #    depends_on:
 #      - redis
     networks:
-      - redis_network
+      - nanoct_network
 networks:
-  redis_network:
+  nanoct_network:
     external: true

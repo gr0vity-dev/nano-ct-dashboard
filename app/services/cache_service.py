@@ -1,27 +1,34 @@
-import aioredis
-from aioredis.client import Redis
+import asyncpg
 import pickle
-
+from quart import current_app
 
 class CacheService:
     CACHE_TTL = 24 * 60 * 60  # Cache for a whole day
 
     def __init__(self):
-        self.redis = None
+        self.pool = None
 
     async def connect(self):
-        if self.redis: return  # initialise only if not yet initialised
-        self.redis = Redis.from_url('redis://redis')
+        if not self.pool:
+            self.pool = await asyncpg.create_pool(user=current_app.config["PG_USER"],
+						  password=current_app.config["PG_PW"],
+                                                  database=current_app.config["PG_DB"],
+						  host='postgres')
 
     async def close(self):
-        if self.redis:
-            self.redis.close()
+        if self.pool:
+            await self.pool.close()
 
     async def get_cache(self, key):
-        value = await self.redis.get(key)
-        if value is not None:
-            return pickle.loads(value)
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow('SELECT value FROM cache WHERE key = $1', key)
+            if row:
+                return pickle.loads(row['value'])
 
-    async def set_cache(self, key, value, ttl=CACHE_TTL):
-        value = pickle.dumps(value)
-        await self.redis.set(key, value, ex=ttl)
+    async def set_cache(self, key, value, ttl=None):
+        pickled_value = pickle.dumps(value)
+        async with self.pool.acquire() as conn:
+            await conn.execute('''
+                INSERT INTO cache(key, value) VALUES($1, $2)
+                ON CONFLICT (key) DO UPDATE SET value = $2
+            ''', key, pickled_value)
