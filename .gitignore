@@ -1,1 +1,6 @@
 app/secrets.py
+app_data/
+__pycache__/
+**secrets**
+**old
+debug.py

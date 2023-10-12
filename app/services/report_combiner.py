@@ -5,6 +5,8 @@ import json
 
 class DataCombiner:
 
+    REPOSITORY_URL = "https://github.com/nanocurrency/nano-node"
+
     def __init__(self):
         # This can be expanded to decouple the input keys from the resulting keys.
         self.key_mappings = {
@@ -12,8 +14,8 @@ class DataCombiner:
                 "hash": "hash",
                 "type": "type",
                 "pull_request": "pr_number",
-                "label": "label_name",
-                "created_at": "creation_date",
+                "label": "label",
+                "created_at": "created_at",
                 "built_at": "built_at",
                 "build_status": "build_status",
                 "docker_tag": "docker_tag",
@@ -27,7 +29,7 @@ class DataCombiner:
                 "testcases": "testcases",
                 "overall_status": "overall_status",
             },
-            "pr_mapping_data": {
+            "pr_info": {
                 "html_url" : "pr_url",
                 "number": "pr_number",
                 "title": "pr_title",
@@ -37,6 +39,8 @@ class DataCombiner:
 
     def get_nested_value(self, data, nested_key):
         """Retrieve the nested value from a dictionary using dotted key notation."""
+        # if data is None : return data
+
         keys = nested_key.split(".")
         temp_data = data
         for key in keys:
@@ -47,7 +51,7 @@ class DataCombiner:
         return temp_data
 
 
-    def combine_data(self, builds, testruns, pr_mapping_data):
+    def combine_data_as_dict(self, builds, testruns, pr_info):
         combined_data = {}
 
         for build in builds:
@@ -56,16 +60,18 @@ class DataCombiner:
         for testrun in testruns:
             self.process_testrun(testrun, combined_data)
 
-        for hash_value, pr_data in pr_mapping_data.items():
-            self.process_pr_mapping_data(hash_value, pr_data, combined_data)
+        for hash_value, pr_data in pr_info.items():
+            self.process_pr_info(hash_value, pr_data, combined_data)
 
         self.compute_all_stats(combined_data)
 
-        # with open('./combined_data.json', 'w') as file:
-        #     json.dump(combined_data, file, indent=4)
+        return combined_data
 
-        return list(combined_data.values())
-        # return combined_data
+    def combine_data(self, builds, testruns, pr_info):
+        combined_data = self.combine_data_as_dict(builds, testruns, pr_info)
+        sorted_data = sorted(combined_data.values(), key=lambda x: x.get('built_at', x.get('created_at', '1970-01-01T00:00:00Z')), reverse=True)
+        return list(sorted_data)[:100]
+
 
 
 
@@ -73,6 +79,7 @@ class DataCombiner:
         mapped_build = self._map_keys(build, "builds")
         hash_value = mapped_build.get("hash")
         build_status = mapped_build.get('build_status')
+        mapped_build["hash_url"] = f"{self.REPOSITORY_URL}/commit/{hash_value}"
 
         if not hash_value:
             warnings.warn("Encountered data without a hash!")
@@ -90,15 +97,25 @@ class DataCombiner:
             return
 
         mapped_testrun = self._map_keys(testrun, "testruns")
+        self._add_custom_testrun_fields(testrun.get('testcases', []))
         combined_data.setdefault(hash_value, {}).update(mapped_testrun)
 
-    def process_pr_mapping_data(self, hash_value, pr_data, combined_data):
-        mapped_pr_data = self._map_keys(pr_data, "pr_mapping_data")
-        self._add_custom_fields(mapped_pr_data)
+    def _add_custom_testrun_fields(self, testcases):
+        for test in testcases:
+            started_at = test.get("started_at")
+            completed_at = test.get("completed_at")
+            test["duration"] = DateTimeHelper.get_duration_in_s(started_at, completed_at)
+
+
+
+    def process_pr_info(self, hash_value, pr_data, combined_data):
+        if not pr_data : return
+        mapped_pr_data = self._map_keys(pr_data, "pr_info")
+        self._add_custom_mapping_fields(mapped_pr_data)
         combined_data.setdefault(hash_value, {}).update(mapped_pr_data)
 
 
-    def _add_custom_fields(self, pr_data):
+    def _add_custom_mapping_fields(self, pr_data):
         pr_url_value = pr_data.get("pr_url")
         if pr_url_value:
             pr_data["diff_url"] = f"{pr_url_value}/files?diff=split&w=0"
@@ -140,7 +157,7 @@ class DataCombiner:
             pass_count = test_count - fail_count
 
             # Determine overall test_status
-            test_status = 'PASS' if fail_count == 0 else 'FAIL'
+            test_status = 'PASS' if fail_count == 0 and pass_count > 0 else 'FAIL'
 
             # Update the entry with computed stats
             entry["test_status"] = test_status

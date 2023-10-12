@@ -32,11 +32,65 @@
       .item-separator {
         border-bottom: 2px dashed #e5e7eb; /* A light gray color */
       }
+
+      input:checked ~ .dot {
+        transform: translateX(50%);
+      }
+
+      .nano-symbol {
+        display: inline-block;
+        width: 2em;
+        height: 2em;
+        vertical-align: middle;
+      }
     </style>
   </head>
 
-  <body class="bg-gray-100 py-6">
+  <body class="bg-white">
     <div class="container mx-auto px-4">
+      <div class="container mt-8 p-5">
+        <h1 class="text-3xl font-bold mb-4 flex items-center">
+          <img
+            src="https://content.nano.org/nano-currency-symbol/square-rounded-badge-white.svg"
+            alt="Nano Symbol"
+            class="w-20 h-20 mr-4"
+          />
+          nano-node CT Dashboard
+        </h1>
+        <p class="text-gray-600">
+          A series of
+          <a
+            href="https://github.com/gr0vity-dev/nanolab-configs/tree/main/quick_testing"
+            class="text-indigo-600 hover:underline"
+          >
+            automated integration tests
+          </a>
+          run on each commit and pull request.
+        </p>
+      </div>
+
+      <div class="relative mb-4">
+        <!-- Dropdown Trigger/Button -->
+        <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md" id="filterMenuBtn">Filter by Type</button>
+
+        <!-- Dropdown Content -->
+        <div
+          class="absolute left-0 mt-2 w-48 rounded-md shadow-lg hidden bg-white text-gray-700 z-10"
+          id="filterMenuContent"
+        >
+          <div class="py-1">
+            <div class="block px-4 py-2">
+              <input type="checkbox" id="pull_request" checked class="mr-2" />
+              <label for="pull_request" class="cursor-pointer">Pull Request</label>
+            </div>
+            <div class="block px-4 py-2">
+              <input type="checkbox" id="commit" checked class="mr-2" />
+              <label for="commit" class="cursor-pointer">Commit</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <table class="bg-white divide-y divide-gray-200">
         <thead>
           <tr class="text-gray-600 uppercase text-xs font-semibold">
@@ -53,18 +107,23 @@
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
           {% for item in data %}
-          <tr class="bg-gray-200">
+          <tr data-group="{{ loop.index }}" class="bg-gray-200">
             <td colspan="10" class="py-1 px-1 font-medium">{{ item.pr_title }}</td>
           </tr>
           {% if not item.build_status in ["pass" , "building"] %}
-          <tr class="bg-gray-200">
+          <tr data-group="{{ loop.index }}" class="bg-red-100" data-type="{{ item.type }}">
             <td colspan="10" class="py-1 px-1 font-medium">
               Build failed for
-              <a href="{{ item.hash_url }}">{{ item.hash }}</a>
+              <a class="text-blue-500" href="{{ item.hash_url }}">{{ item.hash }}</a>
             </td>
           </tr>
           {% else %}
-          <tr class="hover:bg-gray-100 item-separator" onclick="toggleDetails('details-{{ loop.index }}')">
+          <tr
+            data-group="{{ loop.index }}"
+            class="hover:bg-gray-100 item-separator"
+            data-type="{{ item.type }}"
+            onclick="toggleDetails('details-{{ loop.index }}')"
+          >
             <td>
               <img
                 src="https://github.com/{{ item.pr_user }}.png?s=40"
@@ -111,7 +170,16 @@
                 <tbody>
                   {% for test in item.testcases %}
                   <tr>
-                    <td class="border px-2 py-1">{{ test.testcase }}</td>
+                    <td class="border px-2 py-1">
+                      {% if test.status == 'FAIL' %}
+                      <a
+                        class="text-blue-500"
+                        href="https://raw.githubusercontent.com/gr0vity-dev/nano-node-builder/main/continuous_testing/{{ item.hash }}_{{ test.testcase }}.txt"
+                      >
+                        {{ test.testcase }}
+                      </a>
+                      {% else %} {{ test.testcase }} {% endif %}
+                    </td>
                     <td class="border px-2 py-1">
                       {% if test.status == 'PASS' %}
                       <span class="test-status-icon pass-status">&#10004;</span>
@@ -131,7 +199,7 @@
             </td>
           </tr>
           <tr>
-            <td colspan="10" class="py-1"></td>
+            <td data-group="{{ loop.index }}" colspan="10" class="py-1"></td>
           </tr>
           {% endif %} {% endfor %}
         </tbody>
@@ -146,6 +214,48 @@
         } else {
           detailsElem.classList.add("hidden");
         }
+      }
+
+      const menuBtn = document.getElementById("filterMenuBtn");
+      const menuContent = document.getElementById("filterMenuContent");
+
+      menuBtn.addEventListener("click", function () {
+        if (menuContent.classList.contains("hidden")) {
+          menuContent.classList.remove("hidden");
+        } else {
+          menuContent.classList.add("hidden");
+        }
+      });
+
+      // Optional: Close the dropdown if you click outside of it
+      window.addEventListener("click", function (event) {
+        if (!menuBtn.contains(event.target) && !menuContent.contains(event.target)) {
+          menuContent.classList.add("hidden");
+        }
+      });
+
+      document.querySelectorAll("#pull_request, #commit").forEach((input) => {
+        input.addEventListener("change", function () {
+          filterByType();
+        });
+      });
+
+      function filterByType() {
+        const isPullRequestChecked = document.getElementById("pull_request").checked;
+        const isCommitChecked = document.getElementById("commit").checked;
+
+        const items = document.querySelectorAll("[data-type]");
+        items.forEach((item) => {
+          const groupId = item.getAttribute("data-group");
+          const groupItems = document.querySelectorAll(`[data-group="${groupId}"]`);
+          const itemType = item.getAttribute("data-type");
+
+          if ((itemType === "pull_request" && isPullRequestChecked) || (itemType === "commit" && isCommitChecked)) {
+            groupItems.forEach((groupItem) => (groupItem.style.display = ""));
+          } else {
+            groupItems.forEach((groupItem) => (groupItem.style.display = "none"));
+          }
+        });
       }
     </script>
   </body>
