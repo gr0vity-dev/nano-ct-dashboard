@@ -72,7 +72,9 @@ class TestCaseHelper:
     @staticmethod
     def compute_single_testcase_stats(testcase, median_durations):
         # Compute basic stats
-        median_duration = median_durations[testcase["testcase"]]
+        median_duration = median_durations.get(testcase["testcase"], None)
+        if not median_duration : return testcase
+
         duration = testcase["duration"]
         deviation_from_median = duration - median_duration
         deviation_from_median_percent = (deviation_from_median / median_duration) * 100
@@ -94,28 +96,12 @@ class TestCaseHelper:
 
         return testcase
 
-    # @staticmethod
-    # def assign_revisions(combined_data):
-    #     pr_groups = defaultdict(list)
-    #     max_revisions = {}
-
-    #     # Group entries by pr_number and compute max revisions for each PR
-    #     for _, entry in combined_data.items():
-    #         if entry.get("type") == "pull_request":
-    #             pr_number = int(entry["pr_number"])  # Convert to integer for consistency
-    #             pr_groups[pr_number].append(entry)
-    #             # Sort and assign revision for PRs
-    #             sorted_entries = sorted(pr_groups[pr_number], key=lambda x: x["build_date"])
-    #             for i, pr_entry in enumerate(sorted_entries):
-    #                 pr_entry["revision"] = i + 1
-    #             max_revisions[pr_number] = len(sorted_entries)
-    #         elif entry["type"] == "commit" and int(entry.get("pr_number", 0)) in max_revisions:
-    #             entry["revision"] = max_revisions[int(entry["pr_number"])]
 
     @staticmethod
     def assign_revisions(combined_data):
         pr_groups = defaultdict(list)
         max_revisions = {}
+        first_pr_timestamps = {}
 
         # Group entries by pr_number and compute max revisions for each PR
         for entry in combined_data.values():
@@ -123,12 +109,25 @@ class TestCaseHelper:
                 pr_number = int(entry["pr_number"])  # Convert to integer for consistency
                 pr_groups[pr_number].append(entry)
                 # Sort and assign revision for PRs
-                sorted_entries = sorted(pr_groups[pr_number], key=lambda x: x["built_at"])
+                sorted_entries = sorted(pr_groups[pr_number], key=lambda x: x.get("built_at", ""))
                 for i, pr_entry in enumerate(sorted_entries):
-                    pr_entry["revision"] = i + 1
+                    pr_entry["revision_number"] = i + 1
+                    if i == 0 and "built_at" in pr_entry:  # This is the first PR for this PR number
+                        first_pr_timestamps[pr_number] = pr_entry["built_at"]
                 max_revisions[pr_number] = len(sorted_entries)
+
+
             elif entry.get("type") == "commit" and int(entry.get("pr_number", 0)) in max_revisions:
-                entry["revision"] = max_revisions[int(entry["pr_number"])]
+                entry["revision_number"] = max_revisions[int(entry["pr_number"])]
+
+                if "built_at" in entry and int(entry["pr_number"]) in first_pr_timestamps:
+                    commit_datetime = datetime.fromisoformat(entry["built_at"].rstrip("Z"))
+                    first_pr_datetime = datetime.fromisoformat(first_pr_timestamps[int(entry["pr_number"])].rstrip("Z"))
+                    duration = commit_datetime - first_pr_datetime
+                    entry["duration_from_first_pr_to_commit"] = str(duration.days) + " day(s)" if duration.days != 0 else "<1 day"
+
+
+
 
 
 
