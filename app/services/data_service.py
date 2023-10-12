@@ -4,8 +4,8 @@ from app.services.data_combiner import DataCombiner
 
 from asyncio import gather
 from app.services.data_fetcher import DataFetcher
-from app.services.data_combiner import DataCombiner
-# from app.services.report_combiner import DataCombiner
+#from app.services.data_combiner import DataCombiner
+from app.services.report_combiner import DataCombiner
 import json
 
 
@@ -23,11 +23,10 @@ class DataService:
     async def fetch_and_combine_node_test_results(self):
         node_builds_status = await self._fetch_builds_status()
         node_builds_test_report = await self._fetch_builds_test_report()
-        pr_mapping_data = await self._fetch_all_pr_mappings(node_builds_test_report)
+        pr_info = await self._fetch_all_pr_mappings(node_builds_test_report)
 
-        print(pr_mapping_data)
         # enriched_reports = await self._enrich_reports_with_pr(node_builds_test_report)
-        combined_data = self.data_combiner.combine_data(node_builds_status, node_builds_test_report, pr_mapping_data)
+        combined_data = self.data_combiner.combine_data(node_builds_status, node_builds_test_report, pr_info)
 
         return combined_data
 
@@ -46,36 +45,11 @@ class DataService:
         ]
         return await gather(*fetch_tasks)
 
-    # async def _enrich_reports_with_pr(self, all_testruns):
-    #     pr_fetch_tasks = [self._fetch_pr_data(single_run) for single_run in all_testruns]
-    #     return await gather(*pr_fetch_tasks)
-
-    # async def _fetch_pr_data(self, single_run):
-    #     if not single_run :
-    #         return single_run
-    #     if single_run.get("type") != "commit":
-    #         return single_run
-
-    #     single_run["pull_request"] = await self._fetch_pr_from_commit(single_run)
-    #     return single_run
-
-    # async def _fetch_pr_from_commit(self, testrun_data):
-    #     mapping_url = self._construct_pr_mapping_url(testrun_data["hash"])
-    #     mapping_data = await self.data_fetcher.fetch_data('map_issue', mapping_url)
-    #     pr_number = self._extract_pr_number(mapping_data)
-
-    #     return pr_number
-
-    # def _extract_pr_number(self, mapping_data):
-    #     for item in mapping_data.get("items", []):
-    #         if item.get("repository_url") == self.REPOSITORY_URL:
-    #             return str(item.get("number"))
-    #     return None
 
     async def _fetch_all_pr_mappings(self, all_testruns):
         # Generate mapping tasks for both commits and pull requests
         mapping_tasks = [
-            self._fetch_pr_mapping(run["hash"], run.get("pr_number"), run["type"])
+            self._fetch_pr_mapping(run["hash"], run.get("pull_request"), run["type"])
             for run in all_testruns if run.get("type") in ["commit", "pull_request"]
         ]
 
@@ -86,13 +60,15 @@ class DataService:
         # Depending on the type, construct the appropriate URL
         if entry_type == "commit":
             mapping_url = self._construct_commit_mapping_url(hash_value)
+            mapping_data = await self.data_fetcher.fetch_data('map_issue', mapping_url)
+            item = self._get_matching_item(mapping_data)
         elif entry_type == "pull_request" and pr_number:
             mapping_url = self._construct_pull_request_mapping_url(pr_number)
+            item = await self.data_fetcher.fetch_data('map_issue', mapping_url)
         else:
             return {hash_value: {}}
 
-        mapping_data = await self.data_fetcher.fetch_data('map_issue', mapping_url)
-        item = self._get_matching_item(mapping_data)
+
         return {hash_value: item}  # Always use hash_value as the key
 
     def _construct_commit_mapping_url(self, hash_value):
