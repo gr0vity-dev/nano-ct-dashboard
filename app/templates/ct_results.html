@@ -46,14 +46,14 @@
     </style>
   </head>
 
-  <body class="bg-white">
-    <div class="container mx-auto px-4">
-      <div class="container mt-8 p-5">
+  <body class="bg-white bg-gray-100">
+    <div class="container p-5 mx-auto bg-white" style="max-width: 950px">
+      <div class="container mb-4">
         <h1 class="text-3xl font-bold mb-4 flex items-center">
           <img
             src="https://content.nano.org/nano-currency-symbol/square-rounded-badge-white.svg"
             alt="Nano Symbol"
-            class="w-20 h-20 mr-4"
+            class="w-20 h-20"
           />
           nano-node CT Dashboard
         </h1>
@@ -61,7 +61,7 @@
           A series of
           <a
             href="https://github.com/gr0vity-dev/nanolab-configs/tree/main/quick_testing"
-            class="text-indigo-600 hover:underline"
+            class="text-blue-500 hover:underline"
           >
             automated integration tests
           </a>
@@ -72,10 +72,9 @@
       <div class="relative mb-4">
         <!-- Dropdown Trigger/Button -->
         <button class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md" id="filterMenuBtn">Filter by Type</button>
-
         <!-- Dropdown Content -->
         <div
-          class="absolute left-0 mt-2 w-48 rounded-md shadow-lg hidden bg-white text-gray-700 z-10"
+          class="absolute left-0 mt-2 rounded-md shadow-lg hidden bg-white text-gray-700 z-10"
           id="filterMenuContent"
         >
           <div class="py-1">
@@ -91,18 +90,18 @@
         </div>
       </div>
 
-      <table class="bg-white divide-y divide-gray-200">
+      <table class="bg-white divide-y divide-gray-200 overflow-y-auto">
         <thead>
-          <tr class="text-gray-600 uppercase text-xs font-semibold">
+          <tr class="text-gray-600 bg-white text-xs font-semibold sticky top-0 z-5">
             <th class="py-2 px-2 text-left">User</th>
             <th class="py-2 px-2 text-left">Type</th>
             <th class="py-2 px-2 text-left">Status</th>
             <th class="py-2 px-1 text-left">Duration</th>
-            <th class="py-2 px-1 text-left">Test Age</th>
-            <th class="py-2 px-1 text-left">Hash</th>
-            <th class="py-2 px-1 text-left">PR# (Rev.)</th>
-            <th class="py-2 px-1 text-left whitespace-nowrap">Commit In</th>
+            <th class="py-2 px-1 text-left whitespace-nowrap">Test Age</th>
             <th class="py-2 px-1 text-left">Pass/Fail</th>
+            <th class="py-2 px-1 text-left">PR# (Rev.)</th>
+            <th class="py-2 px-1 text-left">Hash</th>
+            <th class="py-2 px-1 text-left whitespace-nowrap">PR to Commit</th>
           </tr>
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
@@ -145,15 +144,15 @@
               <span class="test-status-icon fail-status">&#10006;</span>
               {% endif %}
             </td>
-            <td class="py-2 px-1">{{ item.test_duration }}</td>
+            <td class="py-2 px-1">{{ item.test_duration }} s</td>
             <td class="py-2 px-1">{{ item.test_age }}</td>
-            <td class="py-2 px-1"><a href="{{ item.hash_url }}" class="text-blue-500">{{ item.hash }}</a></td>
+            <td class="py-2 px-1">Pass: {{ item.pass_count }}, Fail: {{ item.fail_count }}</td>
             <td class="py-2 px-1 whitespace-nowrap">
               <a href="{{ item.pr_url }}" class="text-blue-500">{{ item.pr_number }}</a>
               (rev {{ item.revision_number }})
             </td>
+            <td class="py-2 px-1"><a href="{{ item.hash_url }}" class="text-blue-500">{{ item.hash }}</a></td>
             <td class="py-2 px-1">{{ item.duration_from_first_pr_to_commit }}</td>
-            <td class="py-2 px-1">Pass: {{ item.pass_count }}, Fail: {{ item.fail_count }}</td>
           </tr>
           <tr id="details-{{ loop.index }}" class="hidden">
             <td colspan="10" class="py-3 px-1">
@@ -163,8 +162,8 @@
                     <th class="border px-2 py-1 text-left">Testcase</th>
                     <th class="border px-2 py-1 text-left">Status</th>
                     <th class="border px-2 py-1 text-left">Duration</th>
-                    <th class="border px-2 py-1 text-left">Median Duration</th>
                     <th class="border px-2 py-1 text-left">Deviation from Median</th>
+                    <th class="border px-2 py-1 text-left">Median Duration</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -190,8 +189,8 @@
                       {% endif %}
                     </td>
                     <td class="border px-2 py-1">{{ test.duration }}</td>
-                    <td class="border px-2 py-1">{{ test.commit_median_duration }}</td>
                     <td class="border px-2 py-1">{{ test.deviation_from_median }}</td>
+                    <td class="border px-2 py-1">{{ test.commit_median_duration }}</td>
                   </tr>
                   {% endfor %}
                 </tbody>
