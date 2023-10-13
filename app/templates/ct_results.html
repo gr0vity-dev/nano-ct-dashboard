@@ -96,9 +96,9 @@
             <th class="py-2 px-2 text-left">User</th>
             <th class="py-2 px-2 text-left">Type</th>
             <th class="py-2 px-2 text-left">Status</th>
+            <th class="py-2 px-1 text-left">Pass</th>
             <th class="py-2 px-1 text-left">Duration</th>
             <th class="py-2 px-1 text-left whitespace-nowrap">Test Age</th>
-            <th class="py-2 px-1 text-left">Pass/Fail</th>
             <th class="py-2 px-1 text-left">PR# (Rev.)</th>
             <th class="py-2 px-1 text-left">Hash</th>
             <th class="py-2 px-1 text-left whitespace-nowrap">PR to Commit</th>
@@ -144,9 +144,9 @@
               <span class="test-status-icon fail-status">&#10006;</span>
               {% endif %}
             </td>
+            <td class="py-2 px-1">{{ item.pass_count }} / {{ item.pass_count + item.fail_count}}</td>
             <td class="py-2 px-1">{{ item.test_duration }} s</td>
             <td class="py-2 px-1">{{ item.test_age }}</td>
-            <td class="py-2 px-1">Pass: {{ item.pass_count }}, Fail: {{ item.fail_count }}</td>
             <td class="py-2 px-1 whitespace-nowrap">
               <a href="{{ item.pr_url }}" class="text-blue-500">{{ item.pr_number }}</a>
               (rev {{ item.revision_number }})
