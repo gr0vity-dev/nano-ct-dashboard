@@ -3,7 +3,6 @@ import pickle
 from quart import current_app
 
 class CacheService:
-    CACHE_TTL = 24 * 60 * 60  # Cache for a whole day
 
     def __init__(self):
         self.pool = None
@@ -25,7 +24,7 @@ class CacheService:
             if row:
                 return pickle.loads(row['value'])
 
-    async def set_cache(self, key, value, ttl=None):
+    async def insert_cache(self, key, value):
         pickled_value = pickle.dumps(value)
         async with self.pool.acquire() as conn:
             await conn.execute('''

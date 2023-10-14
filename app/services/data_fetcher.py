@@ -4,40 +4,35 @@ from quart import current_app
 import httpx
 
 
+class UnknownDataError(Exception):
+    pass
 class DataFetcher:
 
     def __init__(self, cache_service: CacheService, http_service: HttpService):
         self.cache_service = cache_service
         self.http_service = http_service
 
-    async def fetch_data(self,
-                         data_type: str,
-                         url: str,
-                         add_cache=True,
-                         cache_duration=None):
 
-        data = await self.cache_service.get_cache(
-            url) if self.cache_service else None
-
-        if data is not None:
-            return data
-
-        headers = {'Authorization': f'token {current_app.config["GITHUB_TOKEN"]}'}
-
-        try:
+    async def fetch_data(self, url: str, from_cache=True):
+        if self.cache_service and from_cache:
+            data = await self.cache_service.get_cache(url)
+        else:
+            # fetch data
+            headers = {'Authorization': f'token {current_app.config["GITHUB_TOKEN"]}'}
             response = await self.http_service.get(url, headers=headers)
-            response.raise_for_status()
-        except httpx.HTTPStatusError as error:
-            if 'rate limit' in str(error):
-                return None
-            else:
-                raise error
 
+            #Handling based on status code
+            data = await self._handle_response_status(response, url)
+
+        return data
+
+    async def _handle_response_status(self, response, url):
         if response.status_code == 200:
             data = response.json()
-            if add_cache and self.cache_service:
-                ttl = cache_duration if cache_duration is not None else CacheService.CACHE_TTL
-                await self.cache_service.set_cache(url, data, ttl)
+            await self.cache_service.insert_cache(url, data)
             return data
-        elif data_type == 'testrun' and response.status_code == 404:
+        elif response.status_code == 404:
+            # Custom logic for 404 if required can go here
             return None
+        else:
+            raise UnknownDataError(f"Unknown error for URL: {url}")
