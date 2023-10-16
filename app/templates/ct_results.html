@@ -43,6 +43,10 @@
         height: 2em;
         vertical-align: middle;
       }
+
+      table td {
+        vertical-align: top;
+      }
     </style>
   </head>
 
@@ -90,9 +94,9 @@
         </div>
       </div>
 
-      <table class="bg-white divide-y divide-gray-200 overflow-y-auto">
+      <table class="bg-white overflow-y-auto">
         <thead>
-          <tr class="text-gray-600 bg-white text-xs font-semibold sticky top-0 z-5">
+          <tr class="text-gray-800 bg-gray-200 text-xs font-semibold sticky top-0 z-5">
             <th class="py-2 px-2 text-left">User</th>
             <th class="py-2 px-2 text-left">Type</th>
             <th class="py-2 px-2 text-left">Status</th>
@@ -105,37 +109,43 @@
           </tr>
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
-          {% for item in data %}
-          <tr data-group="{{ loop.index }}" class="bg-gray-200">
-            <td colspan="10" class="py-1 px-1 font-medium">{{ item.pr_title }}</td>
-          </tr>
-          {% if not item.build_status in ["pass" , "building"] %}
+          {% for item in data %} {% set row_color = 'bg-white' %} {% if not item.build_status in ["pass" , "building"]
+          %}
           <tr data-group="{{ loop.index }}" class="bg-red-100" data-type="{{ item.type }}">
-            <td colspan="10" class="py-1 px-1 font-medium">
+            <td colspan="9" class="py-1 px-1 font-medium">
               Build failed for
               <a class="text-blue-500" href="{{ item.hash_url }}">{{ item.hash }}</a>
             </td>
           </tr>
           {% else %}
-          <tr
-            data-group="{{ loop.index }}"
-            class="hover:bg-gray-100 item-separator"
-            data-type="{{ item.type }}"
-            onclick="toggleDetails('details-{{ loop.index }}')"
-          >
-            <td>
+
+          <!-- Row for the PR title -->
+          <tr data-group="{{ loop.index }}" class="{{ row_color }} ">
+            <td rowspan="2">
               <img
                 src="https://github.com/{{ item.pr_user }}.png?s=40"
                 alt="{{ item.pr_user }}"
-                class="rounded-full w-10 h-10"
+                class="py-3 w-12 h-18 rounded-full"
               />
             </td>
+            <td colspan="8" class="px-2 font-medium" style="margin-bottom: 0; padding-bottom: 0">
+              {{ item.pr_title }}
+            </td>
+          </tr>
+
+          <!-- Row for the rest of the data -->
+          <tr
+            data-group="{{ loop.index }}"
+            class="{{ row_color }} mb-4 item-separator"
+            onclick="toggleDetails('details-{{ loop.index }}')"
+            data-type="{{ item.type }}"
+          >
             <td>
               <a href="{{ item.diff_url }}" class="text-blue-500">
                 <img src="{{ url_for('static', filename='images/' + item.type + '.png') }}" alt="{{ item.type }}" />
               </a>
             </td>
-            <td class="py-2 px-1">
+            <td class="py-1 px-1">
               {% if item.test_status == 'PASS' %}
               <span class="test-status-icon pass-status">&#10004;</span>
               {% elif item.test_status == 'WARN' %}
@@ -146,7 +156,7 @@
             </td>
             <td class="py-2 px-1 whitespace-nowrap">{{ item.pass_count }} /{{ item.pass_count + item.fail_count}}</td>
             <td class="py-2 px-1">{{ item.test_duration }} s</td>
-            <td class="py-2 px-1">{{ item.test_age }}</td>
+            <td class="py-2 px-1 whitespace-nowrap">{{ item.test_age }}</td>
             <td class="py-2 px-1 whitespace-nowrap">
               <a href="{{ item.pr_url }}" class="text-blue-500">{{ item.pr_number }}</a>
               (rev {{ item.revision_number }})
@@ -154,6 +164,7 @@
             <td class="py-2 px-1"><a href="{{ item.hash_url }}" class="text-blue-500">{{ item.hash }}</a></td>
             <td class="py-2 px-1">{{ item.duration_from_first_pr_to_commit }}</td>
           </tr>
+          <!-- Row for the testrun data -->
           <tr id="details-{{ loop.index }}" class="hidden">
             <td colspan="10" class="py-3 px-1">
               <table class="table-auto border-collapse">
@@ -197,10 +208,7 @@
               </table>
             </td>
           </tr>
-          <tr>
-            <td data-group="{{ loop.index }}" colspan="10" class="py-1"></td>
-          </tr>
-          {% endif %} {% endfor %}
+          {% endif %}{% endfor %}
         </tbody>
       </table>
     </div>
