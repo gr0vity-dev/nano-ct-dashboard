@@ -14,9 +14,12 @@ class DataFetcher:
 
 
     async def fetch_data(self, url: str, from_cache=True):
+        data = None
+
         if self.cache_service and from_cache:
             data = await self.cache_service.get_cache(url)
-        else:
+
+        if not data :
             # fetch data
             headers = {'Authorization': f'token {current_app.config["GITHUB_TOKEN"]}'}
             response = await self.http_service.get(url, headers=headers)
