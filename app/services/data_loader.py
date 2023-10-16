@@ -36,7 +36,8 @@ class UrlContext:
 class UrlBuilder:
 
     PR_MAPPING_BASE_URL = "https://api.github.com/search/issues?q=sha:{}+is:pull-request"
-    REPOSITORY_URL = "https://api.github.com/repos/nanocurrency/nano-node"
+    REPOSITORY_API_URL = "https://api.github.com/repos/nanocurrency/nano-node"
+    REPOSITORY_URL = "https://github.com/nanocurrency/nano-node"
     BUILDS_URL = 'https://raw.githubusercontent.com/gr0vity-dev/nano-node-builder/main/docker_builder/builds.json'
     TESTRUNS_LIST_URL = 'https://api.github.com/repos/gr0vity-dev/nano-node-builder/contents/continuous_testing'
 
@@ -49,7 +50,7 @@ class UrlBuilder:
                 if url:
                     context_info = {
                         "original_data": run,
-                        "repository_url": UrlBuilder.REPOSITORY_URL  # Include the repository_url in the context
+                        "repository_url": UrlBuilder.REPOSITORY_API_URL  # Include the repository_url in the context
                     }
                     urls.append(UrlContext(url, context_info))
         return urls
@@ -70,7 +71,7 @@ class UrlBuilder:
         if entry_type == "commit":
             return UrlBuilder.PR_MAPPING_BASE_URL.format(hash_value)
         elif entry_type == "pull_request" and pr_number:
-            return f"{UrlBuilder.REPOSITORY_URL}/pulls/{pr_number}"
+            return f"{UrlBuilder.REPOSITORY_API_URL}/pulls/{pr_number}"
 
 
 

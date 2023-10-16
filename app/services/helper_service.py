@@ -8,6 +8,7 @@ class DateTimeHelper:
 
     @staticmethod
     def get_duration_in_s(started_at, completed_at) -> str:
+        if not started_at or not completed_at : return None
         duration = None
         if started_at and completed_at:
             duration = int((datetime.fromisoformat(completed_at.rstrip('Z'))
@@ -21,6 +22,7 @@ class DateTimeHelper:
 
     @staticmethod
     def compute_time_elapsed(test_started_at):
+        if not test_started_at : return None
         time_elapsed = ""
         test_started_at = datetime.strptime(test_started_at,
                                             "%Y-%m-%dT%H:%M:%SZ")
@@ -44,12 +46,12 @@ class DateTimeHelper:
 class TestCaseHelper:
 
     @staticmethod
-    def compute_commit_median_durations(combined_data):
+    def compute_median_commit_durations(combined_data, commit_count=10):
         # Dictionary to hold durations of each testcase with their completion dates
         testcase_info = defaultdict(list)
 
         # Loop through each entry in data to gather durations and completion dates for each testcase
-        for entry in combined_data.values():
+        for entry in combined_data:
             if entry.get("type") == "commit":
                 for testcase in entry.get("testcases", []):
                     if "duration" in testcase and "completed_at" in testcase:
@@ -62,7 +64,7 @@ class TestCaseHelper:
         # Now, sort by completion date, take the 10 most recent testcases and compute the median for each testcase
         median_durations = {}
         for testcase, info in testcase_info.items():
-            sorted_info = sorted(info, key=lambda x: x["completed_at"], reverse=True)[:10]  # 10 most recent
+            sorted_info = sorted(info, key=lambda x: x["completed_at"], reverse=True)[:commit_count]
             durations = [item["duration"] for item in sorted_info]
             median_durations[testcase] = statistics.median(durations)
 
@@ -70,7 +72,7 @@ class TestCaseHelper:
 
 
     @staticmethod
-    def compute_single_testcase_stats(testcase, median_durations):
+    def compute_median_stats(testcase, median_durations):
         # Compute basic stats
         median_duration = median_durations.get(testcase["testcase"], None)
         if not median_duration : return testcase
@@ -102,11 +104,16 @@ class TestCaseHelper:
         pr_groups = defaultdict(list)
         max_revisions = {}
         first_pr_timestamps = {}
+        sorted_entries = sorted(combined_data, key=lambda x: x.get('built_at', x.get('created_at', '1970-01-01T00:00:00Z')), reverse=False)
 
         # Group entries by pr_number and compute max revisions for each PR
-        for entry in combined_data.values():
+        for entry in sorted_entries:
+            if entry.get("hash") == "7a2ff651e86743b42d8017aae8eaba8f71e2b145" :
+                pass
+            if entry.get("pr_number") == 4289 :
+                pass
             if entry.get("type") == "pull_request":
-                pr_number = int(entry["pr_number"])  # Convert to integer for consistency
+                pr_number = entry["pr_number"]  # Convert to integer for consistency
                 pr_groups[pr_number].append(entry)
                 # Sort and assign revision for PRs
                 sorted_entries = sorted(pr_groups[pr_number], key=lambda x: x.get("built_at", ""))
@@ -117,12 +124,13 @@ class TestCaseHelper:
                 max_revisions[pr_number] = len(sorted_entries)
 
 
-            elif entry.get("type") == "commit" and int(entry.get("pr_number", 0)) in max_revisions:
-                entry["revision_number"] = max_revisions[int(entry["pr_number"])]
+            elif entry.get("type") == "commit":
+                pr_number = entry.get("pr_number", 0)
+                entry["revision_number"] = max_revisions.get(pr_number, 1)
 
-                if "built_at" in entry and int(entry["pr_number"]) in first_pr_timestamps:
+                if "built_at" in entry:
                     commit_datetime = datetime.fromisoformat(entry["built_at"].rstrip("Z"))
-                    first_pr_datetime = datetime.fromisoformat(first_pr_timestamps[int(entry["pr_number"])].rstrip("Z"))
+                    first_pr_datetime = datetime.fromisoformat(first_pr_timestamps.get(pr_number, entry["built_at"]).rstrip("Z"))
                     duration = commit_datetime - first_pr_datetime
                     entry["duration_from_first_pr_to_commit"] = str(duration.days) + " day(s)" if duration.days != 0 else "<1 day"
 
