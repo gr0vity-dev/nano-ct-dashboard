@@ -139,7 +139,8 @@ class TestrunProcessor(DataProcessorMixin):
         testrun["test_age"] = DateTimeHelper.compute_time_elapsed(started_at)
         safe_convert_to(int, testrun, "pr_number")
 
-        testcases = testrun.get('testcases', [])
+        testcases = sorted(testrun.get('testcases', []), key=lambda x: x.get("testcase", ""))
+        testrun["testcases"] = testcases
         overall_status = 'PASS'
         fail_count = 0
         pass_count = 0
@@ -157,6 +158,7 @@ class TestrunProcessor(DataProcessorMixin):
         testrun["test_count"] = len(testcases)
         testrun["fail_count"] = fail_count
         testrun["pass_count"] = pass_count
+
 
 
     def get_processed_data(self) -> Dict[str, Any]:

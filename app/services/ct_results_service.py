@@ -15,14 +15,13 @@ class CTResultsService:
         self.cache_service = CacheService()
         self.http_service = HttpService()
         self.data_fetcher = DataFetcher(self.cache_service, self.http_service)
+        self.data_service = DataService(self.data_fetcher)
         self.url_builder = GithubUrlBuilder()
         self.datetime_helper = DateTimeHelper()
 
     async def get_ct_results(self):
         # Pass instances to the data combiner
         await self.cache_service.connect()
-        # Use the DataService to combine all parts of the application
-        data_service = DataService(self.data_fetcher)
         # Finally, you can call the fetch_and_combine_data method
-        combined_data = await data_service.fetch_and_combine_node_test_results()
+        combined_data = await self.data_service.fetch_and_combine_node_test_results()
         return combined_data

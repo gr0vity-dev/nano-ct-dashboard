@@ -31,10 +31,10 @@ class DataService:
         loader = DataLoader(self.data_fetcher)
 
         builds_url_context = UrlBuilder.get_builds()
-        node_builds_status = await loader.load(FileLoaderFactory(), builds_url_context)
+        node_builds_status = await loader.load(FileLoaderFactory(), builds_url_context, False)
 
         reports_url_context = UrlBuilder.get_reports()
-        node_builds_test_report = await loader.load(TestReportsLoaderFactory(), reports_url_context)
+        node_builds_test_report = await loader.load(TestReportsLoaderFactory(), reports_url_context, False)
 
         mappings_url_contexts = UrlBuilder.get_testruns(node_builds_test_report)
         pr_info = await loader.load_many(MappingsLoaderFactory(), mappings_url_contexts)

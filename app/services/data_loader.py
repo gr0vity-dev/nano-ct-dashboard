@@ -79,28 +79,28 @@ class DataLoader:
     def __init__(self, data_fetcher: IDataFetcher):
         self.data_fetcher = data_fetcher
 
-    async def load(self, factory: ILoaderFactory, url_context: UrlContext) -> Any:
+    async def load(self, factory: ILoaderFactory, url_context: UrlContext, from_cache=True) -> Any:
         factory.set_urls(url_context)
-        data = await self._fetch_data(factory.get_primary_urls())
+        data = await self._fetch_data(factory.get_primary_urls(), from_cache)
 
         additional_urls = factory.get_additional_urls(data)
         if additional_urls:
-            data = await self._fetch_data(additional_urls)
+            data = await self._fetch_data(additional_urls, True)
 
         return factory.format_data(data)
 
-    async def load_many(self, factory: ILoaderFactory, url_contexts: List[UrlContext]) -> Any:
+    async def load_many(self, factory: ILoaderFactory, url_contexts: List[UrlContext], from_cache=True) -> Any:
         factory.set_urls(url_contexts)
-        data = await self._fetch_data(factory.get_primary_urls())
+        data = await self._fetch_data(factory.get_primary_urls(), from_cache)
 
         additional_urls = factory.get_additional_urls(data)
         if additional_urls:
-            data += await self._fetch_data(additional_urls)  # assuming you want to append the results
+            data += await self._fetch_data(additional_urls, True)  # assuming you want to append the results
 
         return factory.format_data(data)
 
-    async def _fetch_data(self, url_contexts: List[UrlContext]) -> List[Any]:
-        return await gather(*(self.data_fetcher.fetch_data(uc.url) for uc in url_contexts))
+    async def _fetch_data(self, url_contexts: List[UrlContext], from_cache) -> List[Any]:
+        return await gather(*(self.data_fetcher.fetch_data(uc.url, from_cache) for uc in url_contexts))
 
 class FileLoaderFactory:
 
