@@ -43,15 +43,11 @@
         height: 2em;
         vertical-align: middle;
       }
-
-      table td {
-        vertical-align: top;
-      }
     </style>
   </head>
 
   <body class="bg-white bg-gray-100">
-    <div class="container p-5 mx-auto bg-white" style="max-width: 950px">
+    <div class="container p-5 mx-auto bg-white" style="max-width: 960px">
       <div class="container mb-4">
         <h1 class="text-3xl font-bold mb-4 flex items-center">
           <img
@@ -96,8 +92,10 @@
 
       <table class="bg-white overflow-y-auto">
         <thead>
-          <tr class="text-gray-800 bg-gray-200 text-xs font-semibold sticky top-0 z-5">
+          <tr class="text-gray-800 bg-gray-200 text-md font-semibold sticky top-0 z-5">
+            {#
             <th class="py-2 px-2 text-left">User</th>
+            #}
             <th class="py-2 px-2 text-left">Type</th>
             <th class="py-2 px-2 text-left">Status</th>
             <th class="py-2 px-1 text-left">Pass</th>
@@ -105,10 +103,10 @@
             <th class="py-2 px-1 text-left whitespace-nowrap">Test Age</th>
             <th class="py-2 px-1 text-left">PR# (Rev.)</th>
             <th class="py-2 px-1 text-left">Hash</th>
-            <th class="py-2 px-1 text-left whitespace-nowrap">PR to Commit</th>
+            <th class="py-2 px-1 text-left whitespace-nowrap">Merge time</th>
           </tr>
         </thead>
-        <tbody class="text-gray-600 text-sm font-light">
+        <tbody class="text-gray-600 text-md font-light">
           {% for item in data %} {% set row_color = 'bg-white' %} {% if item.build_status == "building" %}
           <tr data-group="{{ loop.index }}" class="bg-green-100" data-type="{{ item.type }}">
             <td colspan="9" class="py-1 px-1 font-medium">
@@ -125,55 +123,58 @@
           </tr>
           {% else %}
 
-          <!-- Row for the PR title -->
-          <tr data-group="{{ loop.index }}" class="{{ row_color }} ">
-            <td rowspan="2">
-              <img
-                src="https://github.com/{{ item.pr_user }}.png?size=60"
-                alt="{{ item.pr_user }}"
-                class="py-3 w-12 h-18 rounded-full"
-              />
-            </td>
-            <td colspan="8" class="px-2 font-medium" style="margin-bottom: 0; padding-bottom: 0">
-              {{ item.pr_title }}
-            </td>
-          </tr>
-
           <!-- Row for the rest of the data -->
           <tr
             data-group="{{ loop.index }}"
-            class="{{ row_color }} mb-4 item-separator"
+            class="{{ row_color }} "
             onclick="toggleDetails('details-{{ loop.index }}')"
             data-type="{{ item.type }}"
           >
-            <td>
+            <td class="px-2 py-2">
               <a href="{{ item.diff_url }}" class="text-blue-500">
                 <img src="{{ url_for('static', filename='images/' + item.type + '.png') }}" alt="{{ item.type }}" />
               </a>
             </td>
-            <td class="py-1 px-1">
+            <td class="px-2 py-2">
               {% if item.test_status == 'PASS' %}
               <span class="test-status-icon pass-status">&#10004;</span>
               {% elif item.test_status == 'WARN' %}
               <span class="test-status-icon warn-status">&#9888;</span>
+              {% elif item.test_status == 'NOT STARTED' %}
+              <span class="test-status-icon warn-status">⏳</span>
+              {% elif item.test_status == 'RUNNING' %}
+              <span class="test-status-icon warn-status">⏲</span>
               {% else %}
               <span class="test-status-icon fail-status">&#10006;</span>
               {% endif %}
             </td>
-            <td class="py-2 px-1 whitespace-nowrap">{{ item.pass_count }} /{{ item.pass_count + item.fail_count}}</td>
-            <td class="py-2 px-1">{{ item.test_duration }} s</td>
-            <td class="py-2 px-1 whitespace-nowrap">{{ item.test_age }}</td>
-            <td class="py-2 px-1 whitespace-nowrap">
+            <td class="px-1 py-2 whitespace-nowrap">
+              {{ item.pass_count|default(0) }} /{{ (item.pass_count|default(0) + item.fail_count|default(0)) }}
+            </td>
+            <td class="px-2 py-2">{{ item.test_duration }} s</td>
+            <td class="px-2 py-2 whitespace-nowrap">{{ item.test_age }}</td>
+            <td class="px-2 py-2 whitespace-nowrap">
               <a href="{{ item.pr_url }}" class="text-blue-500">{{ item.pr_number }}</a>
               (rev {{ item.revision_number }})
             </td>
-            <td class="py-2 px-1"><a href="{{ item.hash_url }}" class="text-blue-500">{{ item.hash }}</a></td>
-            <td class="py-2 px-1">{{ item.duration_from_first_pr_to_commit }}</td>
+            <td class="px-2 py-2"><a href="{{ item.hash_url }}" class="text-blue-500">{{ item.hash }}</a></td>
+            <td class="px-2 py-2">{{ item.duration_from_first_pr_to_commit }}</td>
           </tr>
           <!-- Row for the testrun data -->
           <tr id="details-{{ loop.index }}" class="hidden">
-            <td colspan="10" class="py-3 px-1">
-              <table class="table-auto border-collapse">
+            <td colspan="10" class="px-2">
+              <!-- Row for the PR title -->
+
+              <div class="flex items-center bg-gray-100 text-sm">
+                <img
+                  src="https://github.com/{{ item.pr_user }}.png?size=32"
+                  alt="{{ item.pr_user }}"
+                  class="rounded-full"
+                />
+                <div class="px-2 font-medium">{{ item.pr_title }}</div>
+              </div>
+
+              <table class="table-auto border-collapse text-sm">
                 <thead>
                   <tr>
                     <th class="border px-2 py-1 text-left">Testcase</th>
@@ -183,7 +184,7 @@
                     <th class="border px-2 py-1 text-left">Median Duration</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody class="text-sm">
                   {% for test in item.testcases %}
                   <tr>
                     <td class="border px-2 py-1">
@@ -214,7 +215,10 @@
               </table>
             </td>
           </tr>
-          {% endif %}{% endfor %}
+          <tr data-group="{{ loop.index }}" class="{{ row_color }} border-b border-dashed border-gray-300 ">
+            <th colspan="10"></th>
+          </tr>
+          {% endif %} {% endfor %}
         </tbody>
       </table>
     </div>

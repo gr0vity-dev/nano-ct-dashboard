@@ -32,7 +32,8 @@ class DataFetcher:
     async def _handle_response_status(self, response, url):
         if response.status_code == 200:
             data = response.json()
-            await self.cache_service.insert_cache(url, data)
+            if "overall_status" in data and data["overall_status"] != "running":
+                await self.cache_service.insert_cache(url, data)
             return data
         elif response.status_code == 404:
             # Custom logic for 404 if required can go here
