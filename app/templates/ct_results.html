@@ -109,8 +109,14 @@
           </tr>
         </thead>
         <tbody class="text-gray-600 text-sm font-light">
-          {% for item in data %} {% set row_color = 'bg-white' %} {% if not item.build_status in ["pass" , "building"]
-          %}
+          {% for item in data %} {% set row_color = 'bg-white' %} {% if item.build_status == "building" %}
+          <tr data-group="{{ loop.index }}" class="bg-green-100" data-type="{{ item.type }}">
+            <td colspan="9" class="py-1 px-1 font-medium">
+              Building node
+              <a class="text-blue-500" href="{{ item.hash_url }}">{{ item.hash }}</a>
+            </td>
+          </tr>
+          {% elif not item.build_status == "pass" %}
           <tr data-group="{{ loop.index }}" class="bg-red-100" data-type="{{ item.type }}">
             <td colspan="9" class="py-1 px-1 font-medium">
               Build failed for
