@@ -42,9 +42,6 @@ class DataProcessorMixin:
         return mapped_data
 
 
-
-
-
 class IProcessor(Protocol):
     def process(self, data: Any) -> None:
         pass
@@ -54,8 +51,6 @@ class IProcessor(Protocol):
 
     def merge_to(self, combined_data: Dict[str, Dict[str, Any]]) -> None:
         pass
-
-
 
 
 class BuildProcessor(DataProcessorMixin):
@@ -91,7 +86,8 @@ class BuildProcessor(DataProcessorMixin):
             return
 
         if build_status not in ['pass', 'fail', 'building']:
-            warnings.warn(f"Encountered {build_status} data for hash: {hash_value}", UserWarning)
+            warnings.warn(
+                f"Encountered {build_status} data for hash: {hash_value}", UserWarning)
             return
 
         self.processed_data[hash_value] = mapped_build
@@ -130,16 +126,16 @@ class TestrunProcessor(DataProcessorMixin):
         self._add_custom_testrun_fields(mapped_testrun)
         self.processed_data[hash_value] = mapped_testrun
 
-
-
     def _add_custom_testrun_fields(self, testrun) -> None:
         started_at = testrun.get("test_started_at")
         completed_at = testrun.get("test_completed_at")
-        testrun["test_duration"] = DateTimeHelper.compute_test_duration(started_at, completed_at)
+        testrun["test_duration"] = DateTimeHelper.compute_test_duration(
+            started_at, completed_at)
         testrun["test_age"] = DateTimeHelper.compute_time_elapsed(started_at)
         safe_convert_to(int, testrun, "pr_number")
 
-        testcases = sorted(testrun.get('testcases', []), key=lambda x: x.get("testcase", ""))
+        testcases = sorted(testrun.get('testcases', []),
+                           key=lambda x: x.get("testcase", ""))
         testrun["testcases"] = testcases
         overall_status = 'PASS'
         fail_count = 0
@@ -147,7 +143,8 @@ class TestrunProcessor(DataProcessorMixin):
         for test in testcases:
             started_at = test.get("started_at")
             completed_at = test.get("completed_at")
-            test["duration"] = DateTimeHelper.get_duration_in_s(started_at, completed_at)
+            test["duration"] = DateTimeHelper.get_duration_in_s(
+                started_at, completed_at)
             if test.get("status") == "PASS":
                 pass_count += 1
             else:
@@ -159,12 +156,8 @@ class TestrunProcessor(DataProcessorMixin):
         testrun["fail_count"] = fail_count
         testrun["pass_count"] = pass_count
 
-
-
     def get_processed_data(self) -> Dict[str, Any]:
         return self.processed_data
-
-
 
 
 class PRInfoProcessor(DataProcessorMixin):
@@ -187,7 +180,8 @@ class PRInfoProcessor(DataProcessorMixin):
     def process(self, pr_data: Dict[str, Any]) -> None:
         if not pr_data:
             return
-        hash_value = pr_data[0]  # You need to decide how to get hash for PR data if it's different.
+        # You need to decide how to get hash for PR data if it's different.
+        hash_value = pr_data[0]
         mapped_pr_data = self._map_keys(pr_data[1])
         self._add_custom_mapping_fields(mapped_pr_data)
         self.processed_data[hash_value] = mapped_pr_data
@@ -199,5 +193,3 @@ class PRInfoProcessor(DataProcessorMixin):
 
     def get_processed_data(self) -> Dict[str, Any]:
         return self.processed_data
-
-
