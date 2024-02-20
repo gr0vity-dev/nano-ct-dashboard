@@ -18,9 +18,9 @@ class CTResultsService:
         self.url_builder = GithubUrlBuilder()
         self.datetime_helper = DateTimeHelper()
 
-    async def get_ct_results(self):
+    async def get_ct_results(self, response_count=None, filter_func=None):
         # Pass instances to the data combiner
         await self.cache_service.connect()
         # Finally, you can call the fetch_and_combine_data method
-        combined_data = await self.data_service.fetch_and_combine_node_test_results()
+        combined_data = await self.data_service.fetch_and_combine_node_test_results(response_count=response_count, filter_func=filter_func)
         return combined_data

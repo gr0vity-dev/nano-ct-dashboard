@@ -6,47 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nano CT Dashboard</title>
     <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
       rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
     />
-
-    <style>
-      .test-status-icon {
-        display: inline-block;
-        font-size: 1rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        text-align: center;
-        line-height: 1.5rem;
-      }
-
-      .pass-status {
-        color: #34d399; /* Tailwind's green-500 */
-      }
-
-      .warn-status {
-        color: #fbbf24; /* Tailwind's yellow-500 */
-      }
-
-      .fail-status {
-        color: #f87171; /* Tailwind's red-500 */
-      }
-
-      .item-separator {
-        border-bottom: 2px dashed #e5e7eb; /* A light gray color */
-      }
-
-      input:checked ~ .dot {
-        transform: translateX(50%);
-      }
-
-      .nano-symbol {
-        display: inline-block;
-        width: 2em;
-        height: 2em;
-        vertical-align: middle;
-      }
-    </style>
+    <link rel="stylesheet" href="/static/css/styles.css" />
     <script
       defer
       data-domain="ct.bnano.info"
@@ -77,34 +40,6 @@
         </p>
       </div>
 
-      <div class="relative mb-4">
-        <!-- Dropdown Trigger/Button -->
-        <button
-          class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md"
-          id="filterMenuBtn"
-        >
-          Filter by Type
-        </button>
-        <!-- Dropdown Content -->
-        <div
-          class="absolute left-0 mt-2 rounded-md shadow-lg hidden bg-white text-gray-700 z-10"
-          id="filterMenuContent"
-        >
-          <div class="py-1">
-            <div class="block px-4 py-2">
-              <input type="checkbox" id="pull_request" checked class="mr-2" />
-              <label for="pull_request" class="cursor-pointer"
-                >Pull Request</label
-              >
-            </div>
-            <div class="block px-4 py-2">
-              <input type="checkbox" id="commit" checked class="mr-2" />
-              <label for="commit" class="cursor-pointer">Commit</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <table class="bg-white overflow-y-auto">
         <thead>
           <tr
@@ -126,11 +61,7 @@
         <tbody class="text-gray-600 text-md font-light">
           {% for item in data %} {% set row_color = 'bg-white' %} {% if
           item.build_status == "building" %}
-          <tr
-            data-group="{{ loop.index }}"
-            class="bg-green-100"
-            data-type="{{ item.type }}"
-          >
+          <tr class="bg-green-100">
             <td colspan="9" class="py-1 px-1 font-medium">
               Building node
               <a class="text-blue-500" href="{{ item.hash_url }}"
@@ -148,11 +79,7 @@
             </td>
           </tr>
           {% elif not item.build_status == "pass" %}
-          <tr
-            data-group="{{ loop.index }}"
-            class="bg-red-100"
-            data-type="{{ item.type }}"
-          >
+          <tr class="bg-red-100">
             <td colspan="9" class="py-1 px-1 font-medium">
               Build failed for
               <a class="text-blue-500" href="{{ item.hash_url }}"
@@ -172,12 +99,7 @@
           {% else %}
 
           <!-- Row for the rest of the data -->
-          <tr
-            data-group="{{ loop.index }}"
-            class="{{ row_color }} "
-            onclick="toggleDetails('details-{{ loop.index }}')"
-            data-type="{{ item.type }}"
-          >
+          <tr class="{{ row_color }} ">
             <td class="px-2 py-2">
               <a href="{{ item.diff_url }}" class="text-blue-500">
                 <img
@@ -221,7 +143,7 @@
             </td>
           </tr>
           <!-- Row for the testrun data -->
-          <tr id="details-{{ loop.index }}" class="hidden">
+          <tr>
             <td colspan="10" class="px-2">
               <!-- Row for the PR title -->
 
@@ -277,7 +199,9 @@
                     </td>
                   </tr>
                   {% endfor %}
-                  <tr>
+                  <tr
+                    class="{{ row_color }} border-b border-dashed border-gray-300"
+                  >
                     <td colspan="10" class="py-1 px-1 text-sm">
                       <div class="flex justify-center space-x-4">
                         <!-- Adjust space-x-4 to manage the space between links -->
@@ -307,69 +231,5 @@
         </tbody>
       </table>
     </div>
-
-    <script>
-      function toggleDetails(id) {
-        const detailsElem = document.getElementById(id);
-        if (detailsElem.classList.contains("hidden")) {
-          detailsElem.classList.remove("hidden");
-        } else {
-          detailsElem.classList.add("hidden");
-        }
-      }
-
-      const menuBtn = document.getElementById("filterMenuBtn");
-      const menuContent = document.getElementById("filterMenuContent");
-
-      menuBtn.addEventListener("click", function () {
-        if (menuContent.classList.contains("hidden")) {
-          menuContent.classList.remove("hidden");
-        } else {
-          menuContent.classList.add("hidden");
-        }
-      });
-
-      // Optional: Close the dropdown if you click outside of it
-      window.addEventListener("click", function (event) {
-        if (
-          !menuBtn.contains(event.target) &&
-          !menuContent.contains(event.target)
-        ) {
-          menuContent.classList.add("hidden");
-        }
-      });
-
-      document.querySelectorAll("#pull_request, #commit").forEach((input) => {
-        input.addEventListener("change", function () {
-          filterByType();
-        });
-      });
-
-      function filterByType() {
-        const isPullRequestChecked =
-          document.getElementById("pull_request").checked;
-        const isCommitChecked = document.getElementById("commit").checked;
-
-        const items = document.querySelectorAll("[data-type]");
-        items.forEach((item) => {
-          const groupId = item.getAttribute("data-group");
-          const groupItems = document.querySelectorAll(
-            `[data-group="${groupId}"]`
-          );
-          const itemType = item.getAttribute("data-type");
-
-          if (
-            (itemType === "pull_request" && isPullRequestChecked) ||
-            (itemType === "commit" && isCommitChecked)
-          ) {
-            groupItems.forEach((groupItem) => (groupItem.style.display = ""));
-          } else {
-            groupItems.forEach(
-              (groupItem) => (groupItem.style.display = "none")
-            );
-          }
-        });
-      }
-    </script>
   </body>
 </html>

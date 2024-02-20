@@ -41,3 +41,39 @@ table tr:hover {
 .styled-table tbody tr:last-of-type {
     border-bottom: 2px solid #009879;
 }
+
+.test-status-icon {
+    display: inline-block;
+    font-size: 1rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    text-align: center;
+    line-height: 1.5rem;
+  }
+
+  .pass-status {
+    color: #34d399; /* Tailwind's green-500 */
+  }
+
+  .warn-status {
+    color: #fbbf24; /* Tailwind's yellow-500 */
+  }
+
+  .fail-status {
+    color: #f87171; /* Tailwind's red-500 */
+  }
+
+  .item-separator {
+    border-bottom: 2px dashed #e5e7eb; /* A light gray color */
+  }
+
+  input:checked ~ .dot {
+    transform: translateX(50%);
+  }
+
+  .nano-symbol {
+    display: inline-block;
+    width: 2em;
+    height: 2em;
+    vertical-align: middle;
+  }

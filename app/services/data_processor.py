@@ -62,7 +62,8 @@ class BuildProcessor(DataProcessorMixin):
         "created_at": "created_at",
         "built_at": "built_at",
         "build_status": "build_status",
-        "docker_tag": "docker_tag"
+        "docker_tag": "docker_tag",
+        "run_id": "build_run_id"
     }
 
     def __init__(self, repository_url: str, dataset: List[Dict[str, Any]] = None):
@@ -104,7 +105,8 @@ class TestrunProcessor(DataProcessorMixin):
         "started_at": "test_started_at",
         "completed_at": "test_completed_at",
         "testcases": "testcases",
-        "overall_status": "overall_status"
+        "overall_status": "overall_status",
+        "run_id": "test_run_id"
     }
 
     def __init__(self, testruns: List[Dict[str, Any]] = None):

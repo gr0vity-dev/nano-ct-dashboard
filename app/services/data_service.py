@@ -4,13 +4,11 @@ from app.services.data_fetcher import DataFetcher
 
 from asyncio import gather
 from app.services.data_fetcher import DataFetcher
-#from app.services.data_combiner import DataCombiner
+# from app.services.data_combiner import DataCombiner
 from app.services.report_combiner import DataCombiner
 from app.services.data_loader import DataLoader, FileLoaderFactory, MappingsLoaderFactory, TestReportsLoaderFactory, UrlBuilder
 from app.services.data_processor import PRInfoProcessor, BuildProcessor, TestrunProcessor
 from app.services.data_stats import AdditionalStatsProcessor
-
-
 
 
 class DataService:
@@ -18,14 +16,19 @@ class DataService:
         self.data_fetcher = data_fetcher
         self.combined_stats = AdditionalStatsProcessor()
 
-    async def fetch_and_combine_node_test_results(self):
+    async def fetch_and_combine_node_test_results(self, response_count=250, filter_func=None):
         loaded_files = await self.load_files()
         data_combiner = self.init_data_combiner(loaded_files)
         combined_data = data_combiner.combine_data()
         self.combined_stats.compute(combined_data)
 
-        return list(combined_data)[:100]
+        # If a filter function is provided, apply it to the combined data
+        if filter_func:
+            filtered_data = filter(filter_func, combined_data)
+        else:
+            filtered_data = combined_data
 
+        return list(filtered_data)[:response_count]
 
     async def load_files(self):
         loader = DataLoader(self.data_fetcher)
@@ -36,20 +39,17 @@ class DataService:
         reports_url_context = UrlBuilder.get_reports()
         node_builds_test_report = await loader.load(TestReportsLoaderFactory(), reports_url_context, False)
 
-        mappings_url_contexts = UrlBuilder.get_testruns(node_builds_test_report)
+        mappings_url_contexts = UrlBuilder.get_testruns(
+            node_builds_test_report)
         pr_info = await loader.load_many(MappingsLoaderFactory(), mappings_url_contexts)
 
         return (node_builds_status, node_builds_test_report, pr_info)
 
     def init_data_combiner(self, loaded_files) -> DataCombiner:
-        build_processor = BuildProcessor(UrlBuilder.REPOSITORY_URL, loaded_files[0])
+        build_processor = BuildProcessor(
+            UrlBuilder.REPOSITORY_URL, loaded_files[0])
         reports_processor = TestrunProcessor(loaded_files[1])
         pr_processor = PRInfoProcessor(loaded_files[2])
 
         processors = [build_processor, reports_processor, pr_processor]
         return DataCombiner(processors)
-
-
-
-
-
