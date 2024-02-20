@@ -139,19 +139,34 @@ class TestrunProcessor(DataProcessorMixin):
         testcases = sorted(testrun.get('testcases', []),
                            key=lambda x: x.get("testcase", ""))
         testrun["testcases"] = testcases
-        overall_status = 'PASS'
         fail_count = 0
         pass_count = 0
+        unfinished_tests = 0
+
+        # Default overall status to NOT STARTED if there are no tests
+        overall_status = 'NOT STARTED' if not testcases else 'RUNNING'
+
         for test in testcases:
             started_at = test.get("started_at")
             completed_at = test.get("completed_at")
-            test["duration"] = DateTimeHelper.get_duration_in_s(
-                started_at, completed_at)
+
+            if not completed_at:
+                unfinished_tests += 1
+
+            test["duration"] = DateTimeHelper.get_duration_in_s(started_at, completed_at)
+
             if test.get("status") == "PASS":
                 pass_count += 1
             else:
-                overall_status = "FAIL"
                 fail_count += 1
+
+        # Determine overall status
+        if unfinished_tests > 0:
+            overall_status = 'RUNNING'
+        elif len(testcases) > 1 and pass_count == len(testcases):
+            overall_status = 'PASS'
+        else:
+            overall_status = 'FAIL'
 
         testrun["test_status"] = overall_status
         testrun["test_count"] = len(testcases)
