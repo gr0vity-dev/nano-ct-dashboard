@@ -104,39 +104,38 @@ class TestCaseHelper:
         pr_groups = defaultdict(list)
         max_revisions = {}
         first_pr_timestamps = {}
-        sorted_entries = sorted(combined_data, key=lambda x: x.get('built_at', x.get('created_at', '1970-01-01T00:00:00Z')), reverse=False)
+        sorted_entries = sorted(combined_data, key=lambda x: x.get(
+            'built_at', x.get('created_at', '1970-01-01T00:00:00Z')), reverse=False)
 
         # Group entries by pr_number and compute max revisions for each PR
         for entry in sorted_entries:
-            if entry.get("hash") == "7a2ff651e86743b42d8017aae8eaba8f71e2b145" :
-                pass
-            if entry.get("pr_number") == 4289 :
-                pass
             if entry.get("type") == "pull_request":
-                pr_number = entry["pr_number"]  # Convert to integer for consistency
+                # Convert to integer for consistency
+                pr_number = entry["pr_number"]
                 pr_groups[pr_number].append(entry)
                 # Sort and assign revision for PRs
-                sorted_entries = sorted(pr_groups[pr_number], key=lambda x: x.get("built_at", ""))
-                for i, pr_entry in enumerate(sorted_entries):
+                sorted_pr_entries = sorted(
+                    pr_groups[pr_number], key=lambda x: x.get("built_at", ""))
+                for i, pr_entry in enumerate(sorted_pr_entries):
                     pr_entry["revision_number"] = i + 1
                     if i == 0 and "built_at" in pr_entry:  # This is the first PR for this PR number
                         first_pr_timestamps[pr_number] = pr_entry["built_at"]
-                max_revisions[pr_number] = len(sorted_entries)
-
+                max_revisions[pr_number] = len(sorted_pr_entries)
 
             elif entry.get("type") == "commit":
-                pr_number = entry.get("pr_number", 0)
-                entry["revision_number"] = max_revisions.get(pr_number, 1)
-
-                if "built_at" in entry:
-                    commit_datetime = datetime.fromisoformat(entry["built_at"].rstrip("Z"))
-                    first_pr_datetime = datetime.fromisoformat(first_pr_timestamps.get(pr_number, entry["built_at"]).rstrip("Z"))
-                    duration = commit_datetime - first_pr_datetime
-                    entry["duration_from_first_pr_to_commit"] = str(duration.days) + " day(s)" if duration.days != 0 else "<1 day"
-
-
-
-
-
-
-
+                pr_number = entry.get("pr_number")
+                if pr_number is None or pr_number not in first_pr_timestamps:
+                    # If no PR number exists, indicate 'direct'
+                    entry["pr_number"] = "N/A"
+                    entry["revision_number"] = "0"
+                    entry["duration_from_first_pr_to_commit"] = "direct"
+                else:
+                    entry["revision_number"] = max_revisions.get(pr_number, 1)
+                    if "built_at" in entry:
+                        commit_datetime = datetime.fromisoformat(
+                            entry["built_at"].rstrip("Z"))
+                        first_pr_datetime = datetime.fromisoformat(
+                            first_pr_timestamps[pr_number].rstrip("Z"))
+                        duration = commit_datetime - first_pr_datetime
+                        entry["duration_from_first_pr_to_commit"] = str(
+                            duration.days) + " day(s)" if duration.days != 0 else "<1 day"

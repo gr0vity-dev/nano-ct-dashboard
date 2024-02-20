@@ -1,5 +1,6 @@
 requests
 httpx
+aiohttp
 asyncio
 quart
 hypercorn
