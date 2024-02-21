@@ -220,6 +220,10 @@
                           >Github Actions Build Log</a
                         >
                         {% endif %}
+                        <!-- Refresh Cache  -->
+                      <button onclick="promptRefreshCache('{{ item.hash }}')" class="text-sm font-bold">
+                        Refresh Cache
+                      </button>
                       </div>
                     </td>
                   </tr>
@@ -232,4 +236,42 @@
       </table>
     </div>
   </body>
+
+  <script>
+    function promptRefreshCache(cacheKey) {
+      const authKey = prompt("Please enter the auth key:", "");
+      if (authKey === null || authKey === "") {
+        alert("Auth key is required to refresh the cache.");
+      } else {
+        console.log("cacheKey: ", cacheKey, "authKey: ", authKey)
+        refreshCache(cacheKey, authKey);
+      }
+    }
+    
+    function refreshCache(cacheKey, authKey) {      
+      const url = `/api/delete_cache/${cacheKey}/${authKey}`;
+    
+      fetch(url, {
+        method: 'GET'
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Network response was not ok.');
+      })
+      .then(data => {
+        console.log(data);        
+        if(data.message === "Cache refreshed successfully") {     
+          console.log("Reloaded");
+          window.location.reload();
+        }
+      })
+      .catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+        alert('Failed to refresh cache: ' + error.message);
+      });
+    }
+    </script>
+    
 </html>
