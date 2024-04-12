@@ -72,9 +72,10 @@ class DataProcessor:
         if stored_data.get("overall_status") == "running":
             # Convert the stored datetime string to an offset-aware datetime using timezone.utc
             started_at = datetime.strptime((stored_data.get(
-                "started_at") or "1970-01-01T00:00:00Z"), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                "build_started_at") or "1970-01-01T00:00:00Z"), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
             # Compare with the current UTC time, which is also made offset-aware
-            if datetime.now(timezone.utc) - started_at < timedelta(hours=1):
+            time_diff = datetime.now(timezone.utc) - started_at
+            if time_diff < timedelta(hours=24):
                 return True
         return False
