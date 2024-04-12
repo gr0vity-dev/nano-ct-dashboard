@@ -35,9 +35,9 @@ WITH CTE AS (
         JULIANDAY(MAX(b.build_started_at) OVER(PARTITION BY b.pull_request)) - JULIANDAY(MIN(b.build_started_at) OVER(PARTITION BY b.pull_request)) AS raw_duration_in_days,
         MAX(CASE WHEN b.type = 'commit' THEN 1 ELSE 0 END) OVER(PARTITION BY b.pull_request) AS has_commit, *
     FROM 
-        builds b
-    WHERE b.pull_request != 'None'
-    AND b.build_started_at != 'None'
+        builds b    
+    WHERE b.build_started_at != 'None'
+    --AND b.pull_request != 'None'
 )
 SELECT 
     hash,
@@ -77,7 +77,8 @@ SELECT
     testcase_run_id,
     build_run_id,
     CASE 
-        WHEN overall_status = 'PASS' THEN '✅'        
+        WHEN overall_status = 'PASS' THEN '✅'
+        WHEN overall_status = 'running' THEN '⌛'
         ELSE '❌'
     END AS overall_status,
     title,
