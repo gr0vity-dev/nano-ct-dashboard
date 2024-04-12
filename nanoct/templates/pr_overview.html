@@ -68,25 +68,25 @@
                             <table class="w-full">
                                 <thead>
                                     <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                                        <th class="py-2 px-4 text-left">Revision</th>
-                                        <th class="py-2 px-4 text-left">Created</th>
-                                        <th class="py-2 px-4 text-left">Type</th>
-                                        <th class="py-2 px-4 text-left">Status</th>
-                                        <th class="py-2 px-4 text-left">Test Details</th>
-                                        <th class="py-2 px-4 text-left">Commit</th>
+                                        <th class="py-1  px-2 text-left">Revision</th>
+                                        <th class="py-1 px-2 text-left">Created</th>
+                                        <th class="py-1 px-2 text-left">Type</th>
+                                        <th class="py-1 px-2 text-left">Status</th>
+                                        <th class="py-1 px-2 text-left">Test Details</th>
+                                        <th class="py-1 px-2 text-left">Commit</th>
                                     </tr>
                                 </thead>
                                 <tbody class="text-gray-600 text-sm font-light">
                                     {% for entry in data.entries %}
                                     <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                        <td class="py-2 px-4 text-left">{{ entry.revision }}</td>
-                                        <td class="py-2 px-4 text-left">{{ entry.last_modified }}</td>
-                                        <td class="py-2 px-4 text-left">{{ entry.type }}</td>
-                                        <td class="py-2 px-4 text-left">{{ entry.overall_status }}</td>
-                                        <td class="py-2 px-4 text-left">
+                                        <td class="px-1 text-left">{{ entry.revision }}</td>
+                                        <td class="px-1 text-left">{{ entry.last_modified }}</td>
+                                        <td class="px-1 text-left">{{ entry.type }}</td>
+                                        <td class="px-1 text-left">{{ entry.overall_status }}</td>
+                                        <td class="px-1 text-left">
                                             <a href="/details/{{ entry.hash }}" class="text-blue-500 hover:underline">Show</a>
                                         </td>
-                                        <td class="py-2 px-4 text-left">
+                                        <td class="py-1 px-2 text-left">
                                             <a href="{{ entry.commit_url }}" target="_blank" class="text-blue-500 hover:underline">{{ entry.hash[:7] }}</a>
                                         </td>
                                     </tr>
