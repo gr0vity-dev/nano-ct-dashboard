@@ -1,0 +1,11 @@
+version: '3'
+services:
+  nano-explorer:
+    container_name: nanoct
+    build: ./nanoct
+    ports:
+      - "5105:5000"
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      - ${PWD}/data_storage/:/app/data/

@@ -1,0 +1,7 @@
+Hypercorn==0.16.0
+leveldb==0.201
+aiohttp==3.9.3
+Quart==0.19.5
+SQLAlchemy==2.0.29
+json-relational==0.0.3
+pandas==2.2.2

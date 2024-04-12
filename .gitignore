@@ -1,0 +1,5 @@
+**debug**
+secret_config.py
+.env
+leveldb_storag/**
+data_storage/sqlite_storage.db

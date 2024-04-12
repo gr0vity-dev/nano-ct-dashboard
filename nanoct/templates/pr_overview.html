@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+
+    <style>
+        /* Custom styles for title truncation and tooltip */
+        .truncate {
+            max-width: 80ch;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .truncate:hover {
+            overflow: visible;
+            white-space: normal;
+            position: absolute;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+    </style>
+    <title>Nano CT Dashboard</title>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-4">Nano CT Dashboard</h1>
+        <table class="w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead>
+                <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-2 px-2 text-left ">#PR</th>
+                    <th class="py-2 px-2 text-left ">Modified</th>
+                    <th class="py-2 px-2 text-left ">Author</th>
+                    <th class="py-2 px-2 text-left ">Revision</th>
+                    <th class="py-2 px-2 text-left ">Status</th>
+                    <th class="py-2 px-2 text-left ">Merged</th>
+                    <th class="py-2 px-2 text-left ">Merge Duration</th>                    
+                    <th class="py-2 px-2 text-left ">Title</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+                {% for pr_number, data in pr_data.items() %}
+                <tr class="border-b border-gray-200 hover:bg-gray-100 cursor-pointer {{ 'bg-green-100' if data.header.merged == 'Yes' else '' }}" onclick="toggleRevisions('{{ pr_number }}')">
+                    <td class="py-3 px-2 text-left whitespace-nowrap">
+                        <a href="{{ data.header.pr_url }}" class="text-blue-500 hover:underline">{{ data.header.pr_number }}</a>
+                    </td>
+                    <td class="py-3 px-2 text-left whitespace-nowrap">{{ data.header.last_modified }}</td>
+                    <td class="py-3 px-2 text-left">
+                        <div class="flex items-center">                            
+                            <img src="{{ data.header.avatar }}" alt="" class="mr-2 w-4" >                           
+                            <span>{{ data.header.author }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-2 text-center">{{ data.header.current_revision }}</td>
+                    <td class="py-3 px-2 text-center">{{ data.header.overall_status }}</td>
+                    <td class="py-3 px-2 text-left">{{ data.header.merged }}</td>
+                    <td class="py-3 px-2 text-left">{{ data.header.merge_duration }}</td>                    
+                    <td class="py-3 px-2 text-left truncate" title="{{ data.header.title }}">{{ data.header.title }}</td>
+                </tr>
+                <tr id="revisions-{{ pr_number }}" class="hidden">
+                    <td colspan="7">
+                        <div class="ml-4 max-w-4xl"> 
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                                        <th class="py-2 px-4 text-left">Revision</th>
+                                        <th class="py-2 px-4 text-left">Created</th>
+                                        <th class="py-2 px-4 text-left">Type</th>
+                                        <th class="py-2 px-4 text-left">Status</th>
+                                        <th class="py-2 px-4 text-left">Test Details</th>
+                                        <th class="py-2 px-4 text-left">Commit</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-600 text-sm font-light">
+                                    {% for entry in data.entries %}
+                                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                        <td class="py-2 px-4 text-left">{{ entry.revision }}</td>
+                                        <td class="py-2 px-4 text-left">{{ entry.last_modified }}</td>
+                                        <td class="py-2 px-4 text-left">{{ entry.type }}</td>
+                                        <td class="py-2 px-4 text-left">{{ entry.overall_status }}</td>
+                                        <td class="py-2 px-4 text-left">
+                                            <a href="/details/{{ entry.hash }}" class="text-blue-500 hover:underline">Show</a>
+                                        </td>
+                                        <td class="py-2 px-4 text-left">
+                                            <a href="{{ entry.commit_url }}" target="_blank" class="text-blue-500 hover:underline">{{ entry.hash[:7] }}</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function toggleRevisions(prNumber) {
+            const revisions = document.getElementById(`revisions-${prNumber}`);
+            revisions.classList.toggle('hidden');
+        }        
+    </script>
+</body>
+
+</html>

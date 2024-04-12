@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <title>Test Result Details</title>
+  </head>
+  <body class="bg-gray-100 p-5">
+    <div class="container mx-auto p-4 bg-white shadow rounded-lg">
+      <header class="border-b pb-4">
+        <h1 class="text-2xl font-bold mb-2">Test Details Overview</h1>
+        <div class="text-gray-600">
+          <pre>{{ hash_data.title }}</pre>
+          <p>__________</p>
+          <p>Type: <strong>{{ hash_data.type }}</strong></p>
+          <p>
+            Hash:
+            <a
+              href="{{ hash_data.commit_url }}"
+              class="text-blue-500 hover:underline"
+              >{{ hash_data.hash }}</a
+            >
+          </p>
+          <p>Created: <strong>{{ hash_data.last_modified }}</strong></p>
+          <p>__________</p>
+          <p>gr0v1ty/nano-node:{{ hash_data.hash }}</p>
+        </div>
+      </header>
+      <div class="mt-4">
+        <h2 class="text-xl font-semibold mb-2">Test Results</h2>
+        <table class="min-w-full bg-white">
+          <thead class="bg-gray-200 text-gray-600">
+            <tr>
+              <th class="py-3 px-6 text-left">Test Case</th>
+              <th class="py-3 px-6 text-left">Status</th>
+              <th class="py-3 px-6 text-left">Duration</th>
+              <th class="py-3 px-6 text-left">Median Deviation</th>
+              <th class="py-3 px-6 text-left">Log</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-600">
+            {% for test in test_results %}
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+              <td class="py-2 px-6">{{ test.testcase }}</td>
+              <td class="py-2 px-6">
+                <span
+                  class="{{ 'text-green-500' if test.status == 'PASS' else 'text-red-500' }}"
+                  >{{ test.status }}</span
+                >
+              </td>
+              <td class="py-2 px-6">{{ test.duration }} s</td>
+              <td class="py-2 px-6">
+                {{ test.duration -
+                median_duration[test.testcase].median_duration }} s
+              </td>
+              <td class="py-2 px-6">
+                {% if test.log %}
+                <a href="{{ test.log }}" class="text-blue-500 hover:underline"
+                  >View Log</a
+                >
+                {% else %} No log {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <footer class="mt-4 pt-4 border-t">
+        <p class="text-gray-600">
+          <a
+            href="{{ hash_data.build_url }}"
+            class="text-blue-500 hover:underline"
+            >Github Build</a
+          >
+        </p>
+        <p class="text-gray-600">
+          <a href="{{ testcase_url }}" class="text-blue-500 hover:underline"
+            >Github Test Run</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
