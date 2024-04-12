@@ -43,7 +43,6 @@ async def index(count):
 
 @app.route('/details/<hash_value>')
 async def details_by_hash(hash_value):
-    # Render the template with the default count of 50
     hash_data = sql_processor.fetch_data(hash_value)
     results_data = sql_processor.fetch_test_data(hash_value)
     median_duration = sql_processor.fetch_median_testduration()
@@ -56,11 +55,8 @@ async def details_by_hash(hash_value):
 @app.route('/api/data/', defaults={'identifier': None})
 @app.route('/api/data/<identifier>')
 async def fetch_data(identifier):
-    # Initialize parameters
     params = {}
-
     if identifier:
-        # Assign parameters based on identifier type
         if len(identifier) == 40:
             params['hash_value'] = identifier
         elif identifier.isdigit() and len(identifier) <= 5:
@@ -68,9 +64,7 @@ async def fetch_data(identifier):
         else:
             return jsonify({'error': 'Invalid identifier'}), 400
 
-    # Fetch data based on provided identifier or fetch all if no identifier is given
     data = sql_processor.fetch_data(**params)
-
     if not data:
         return jsonify({'error': 'Data not found'}), 404
 
@@ -80,16 +74,25 @@ async def fetch_data(identifier):
 @app.route('/api/results/<hash_value>')
 async def fetch_test_data(hash_value):
 
-    # Determine if the identifier is a hash or a pull request number
     if len(hash_value) == 40:
-        # It's a hash
         data = sql_processor.fetch_test_data(hash_value=hash_value)
-    else:
-        # Invalid identifier
-        return jsonify({'error': 'Invalid identifier'}), 400
+        median_data = sql_processor.fetch_median_testduration()
 
-    if not data:
-        return jsonify({'error': 'Data not found'}), 404
+        # Extend with min max avh and median duration
+        for test in data:
+            testcase_data = median_data.get(test['testcase'], {})
+            median_duration = testcase_data.get('median_duration')
+            for key, value in testcase_data.items():
+                test[key] = value
+
+            if median_duration is not None:
+                # Calculate deviation if median duration exists
+                test['deviation_from_median'] = test['duration'] - median_duration
+            else:
+                # Indicate absence of median data
+                test['deviation_from_median'] = 'No median data available'
+    else:
+        return jsonify({'error': 'Invalid identifier'}), 400
 
     return jsonify(data)
 
@@ -97,12 +100,9 @@ async def fetch_test_data(hash_value):
 @app.route('/api/grouped/', defaults={'count': 50})
 @app.route('/api/grouped/<count>')
 async def get_grouped_data(count):
-
-    # Assuming `data` is your list of dictionaries fetched from the database
     data = sql_processor.fetch_data()
-
-    # Group data by pull_request while maintaining original order of appearance
     grouped_data = defaultdict(list)
+
     pr_order = []  # To track the order of pull requests as they first appear
     for entry in data:
         pr = str(entry['pull_request'])
@@ -115,7 +115,7 @@ async def get_grouped_data(count):
     structured_data = OrderedDict()  # To maintain the order of insertion
     for pr in pr_order[:count]:
         entries = grouped_data[pr]
-        # Find the first entry with a non-null author
+        # Find the first entry with a non-null values
         author = next((entry.get('author')
                       for entry in entries if entry.get('author')), '')
         avatar = next((entry.get('avatar')
@@ -127,7 +127,6 @@ async def get_grouped_data(count):
         pr_url = next((entry.get('pr_url')
                        for entry in entries if entry.get('pr_url')), '')
 
-        # Assuming the most recent entry (first in the list) has relevant data
         header_data = {
             'pr_number': pr,
             'author': author,
@@ -144,12 +143,11 @@ async def get_grouped_data(count):
 
         structured_data[pr] = {
             'header': header_data,
-            'entries': entries  # These are already in the desired sort order
+            'entries': entries
         }
-        # Explicitly convert to a JSON string
     json_data = json.dumps(structured_data)
 
-    # Return a response with the 'application/json' MIME type
+    # Return a response to keep the order of the dict
     return Response(json_data, mimetype='application/json')
 
 
