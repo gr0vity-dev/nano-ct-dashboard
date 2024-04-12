@@ -45,7 +45,7 @@
             </thead>
             <tbody class="text-gray-600 text-sm font-light">
                 {% for pr_number, data in pr_data.items() %}
-                <tr class="border-b border-gray-200 hover:bg-gray-100 cursor-pointer {{ 'bg-green-100' if data.header.merged == 'Yes' else '' }}" onclick="toggleRevisions('{{ pr_number }}')">
+                <tr class="border-b border-gray-200 hover:bg-gray-100 cursor-pointer {{ 'bg-blue-100' if data.header.merged == 'Yes' else '' }}" onclick="toggleRevisions('{{ pr_number }}')">
                     <td class="py-3 px-2 text-left whitespace-nowrap">
                         <a href="{{ data.header.pr_url }}" class="text-blue-500 hover:underline">{{ data.header.pr_number }}</a>
                     </td>
