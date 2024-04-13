@@ -2,6 +2,9 @@
 base_testcase_query = """
 SELECT * ,
     ROUND((julianday(completed_at) - julianday(started_at)) * 86400) as duration,
+    '{hash_value}' as hash,
+    (strftime('%s', started_at) + 30) * 1000 AS started_at_unix,
+    (strftime('%s', completed_at) + 10) * 1000 AS completed_at_unix,
     CASE 
         WHEN status = 'FAIL'
             THEN 'https://raw.githubusercontent.com/gr0vity-dev/nano-node-builder/main/continuous_testing/' || '{hash_value}' || '_' || testcase || '.txt'
