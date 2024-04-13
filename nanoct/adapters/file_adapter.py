@@ -1,5 +1,5 @@
 import json
-from storage.interface import StorageInterface
+from interfaces.storage_interface import StorageInterface
 
 
 class FileStorage(StorageInterface):

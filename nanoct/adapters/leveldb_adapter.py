@@ -1,5 +1,5 @@
 import leveldb
-from storage.interface import StorageInterface
+from interfaces.storage_interface import StorageInterface
 import json
 
 

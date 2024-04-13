@@ -1,12 +1,14 @@
 
 base_testcase_query = """
-select * ,
-ROUND((julianday(completed_at) - julianday(started_at)) * 86400) as duration,
-CASE 
-  WHEN status = 'FAIL' THEN 'https://raw.githubusercontent.com/gr0vity-dev/nano-node-builder/main/continuous_testing/' || '{hash_value}' || '_' || testcase || '.txt'
-  ELSE NULL 
-END AS log
-from testcases where sql_id in (
+SELECT * ,
+    ROUND((julianday(completed_at) - julianday(started_at)) * 86400) as duration,
+    CASE 
+        WHEN status = 'FAIL'
+            THEN 'https://raw.githubusercontent.com/gr0vity-dev/nano-node-builder/main/continuous_testing/' || '{hash_value}' || '_' || testcase || '.txt'
+        ELSE NULL 
+    END AS log
+FROM testcases 
+WHERE sql_id in (
 select link_sql_id from mappings where main_sql_id in (select sql_id from builds where hash = '{hash_value}') and link_type = 'testcases' )
 ORDER BY testcase
 """

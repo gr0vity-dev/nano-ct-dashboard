@@ -1,7 +1,7 @@
-from interfaces.github_client import GitHubClient
-from interfaces.ct_results import TestResult
-from interfaces.sql_processor import SqlProcessor
-from storage.leveldb_adapter import LevelDBStorage
+from adapters.github_client import GitHubClient
+from models.ct_results import TestResult
+from database.sql_processor import SqlProcessor
+from adapters.leveldb_adapter import LevelDBStorage
 from datetime import datetime, timedelta, timezone
 from json_relational import JsonRelational
 from utils.logger import logger
@@ -76,6 +76,6 @@ class DataProcessor:
 
             # Compare with the current UTC time, which is also made offset-aware
             time_diff = datetime.now(timezone.utc) - started_at
-            if time_diff < timedelta(hours=24):
+            if time_diff < timedelta(hours=2):
                 return True
         return False

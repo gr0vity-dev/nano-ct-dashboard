@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from utils.logger import logger
-from interfaces.sql.queries import format_query, format_testcase_query, format_median_testduration_query
+from database.sql_queries import format_query, format_testcase_query, format_median_testduration_query
 import pandas as pd
 
 
