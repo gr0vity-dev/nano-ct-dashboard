@@ -35,34 +35,34 @@
         <table class="min-w-full bg-white">
           <thead class="bg-gray-200 text-gray-600">
             <tr>
-              <th class="py-3 px-6 text-left">Test Case</th>
-              <th class="py-3 px-6 text-left">Status</th>
-              <th class="py-3 px-6 text-left">Duration</th>
-              <th class="py-3 px-6 text-left">Median Deviation</th>
-              <th class="py-3 px-6 text-left">Log</th>
+              <th class="py-2 px-2 text-left">Test Case</th>
+              <th class="py-2 px-2 text-left">Status</th>
+              <th class="py-2 px-2 text-left">Duration</th>
+              <th class="py-2 px-2 text-left">Median Deviation</th>
+              <th class="py-2 px-2 text-left">Log</th>
             </tr>
           </thead>
           <tbody class="text-gray-600">
             {% for test in test_results %}
             <tr class="border-b border-gray-200 hover:bg-gray-50">
-              <td class="py-2 px-6">{{ test.testcase }}</td>
-              <td class="py-2 px-6">
+              <td class="py-2 px-2">{{ test.testcase }}</td>
+              <td class="py-2 px-2">
                 <span
                   class="{{ 'text-green-500' if test.status == 'PASS' else 'text-red-500' }}"
                   >{{ test.status }}</span
                 >
               </td>
-              <td class="py-2 px-6">{{ test.duration }} s</td>
-              <td class="py-2 px-6">
+              <td class="py-2 px-2">{{ test.duration }} s</td>
+              <td class="py-2 px-2">
                 {{ test.duration -
                 median_duration[test.testcase].median_duration }} s
               </td>
-              <td class="py-2 px-6">
+              <td class="py-2 px-2">
                 {% if test.log %}
                 <a href="{{ test.log }}" class="text-blue-500 hover:underline"
-                  >View Log</a
+                  >Show</a
                 >
-                {% else %} No log {% endif %}
+                {% else %} - {% endif %}
               </td>
             </tr>
             {% endfor %}
