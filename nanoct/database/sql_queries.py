@@ -38,7 +38,16 @@ WITH CTE AS (
             )
         END AS revision,
         JULIANDAY(MAX(b.build_started_at) OVER(PARTITION BY b.pull_request)) - JULIANDAY(MIN(b.build_started_at) OVER(PARTITION BY b.pull_request)) AS raw_duration_in_days,
-        MAX(CASE WHEN b.type = 'commit' THEN 1 ELSE 0 END) OVER(PARTITION BY b.pull_request) AS has_commit, *
+        MAX(CASE WHEN b.type = 'commit' THEN 1 ELSE 0 END) OVER(PARTITION BY b.pull_request) AS has_commit, 
+        CASE WHEN author = 'nan' 
+            THEN SUBSTR(label, 0, INSTR(label, ':')) 
+            ELSE author 
+        END AS author,
+        CASE
+            WHEN type = 'commit' THEN 'nanocurrency'
+            ELSE SUBSTR(label, 0, INSTR(label, ':'))
+        END AS commit_user
+        ,*
     FROM 
         builds b    
     WHERE b.build_started_at != 'None'
@@ -87,14 +96,14 @@ SELECT
         ELSE '❌'
     END AS overall_status,
     title,
-    label,    
-    SUBSTR(label, 0, INSTR(label, ':')) AS author,
+    label, 
+    author,
     'https://github.com/nanocurrency/nano-node/pull/' || pull_request AS pr_url,
     'https://github.com/gr0vity-dev/nano-node-builder/actions/runs/' || testcase_run_id AS testcase_url, 
     'https://github.com/gr0vity-dev/nano-node-builder/actions/runs/' || build_run_id AS build_url, 
-    'https://github.com/' || SUBSTR(label, 0, INSTR(label, ':')) || '/nano-node/commits/' || SUBSTR(label, INSTR(label, ':') + 1) || '/' AS branch,
-    'https://github.com/' || COALESCE(NULLIF(SUBSTR(label, 0, INSTR(label, ':')), ''), 'nanocurrency') || '/nano-node/commit/' || hash AS commit_url,
-    'https://github.com/' || SUBSTR(label, 0, INSTR(label, ':')) || '.png?size=40' AS avatar
+    'https://github.com/' || SUBSTR(label, 0, INSTR(label, ':')) || '/nano-node/commits/' || SUBSTR(label, INSTR(label, ':') + 1) || '/' AS branch,    
+    'https://github.com/' || commit_user || '/nano-node/commit/' || hash AS commit_url,
+    'https://github.com/' || author || '.png?size=40' AS avatar
 FROM CTE
 {where_clause}
 ORDER BY 

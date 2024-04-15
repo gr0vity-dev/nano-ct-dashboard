@@ -46,7 +46,7 @@ def format_frontend(data, count):
         pr_url = next((entry.get('pr_url')
                        for entry in entries if entry.get('pr_url')), '')
         title = next((entry.get('title')
-                      for entry in entries if entry.get('type') != "commit"), '')
+                      for entry in entries if entry.get('type') != "commit"), '') or entries[0].get('title')
 
         header_data = {
             'pr_number': pr,

@@ -27,6 +27,7 @@ class TestCase:
 class TestResult:
     hash: Optional[str] = None
     type: Optional[str] = None
+    author: Optional[str] = None
     testcase_run_id: Optional[str] = None
     title: Optional[str] = None
     body: Optional[str] = None
