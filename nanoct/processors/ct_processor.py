@@ -76,6 +76,6 @@ class DataProcessor:
 
             # Compare with the current UTC time, which is also made offset-aware
             time_diff = datetime.now(timezone.utc) - started_at
-            if time_diff < timedelta(hours=2):
+            if time_diff < timedelta(hours=24):
                 return True
         return False
