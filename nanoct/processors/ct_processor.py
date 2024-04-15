@@ -8,10 +8,10 @@ from utils.logger import logger
 
 
 class DataProcessor:
-    def __init__(self, storage: LevelDBStorage, sql_processor: SqlProcessor):
+    def __init__(self, storage: LevelDBStorage, sql_processor: SqlProcessor, gh_client: GitHubClient):
         self.storage = storage
         self.sql_processor = sql_processor
-        self.github_client = GitHubClient()
+        self.github_client = gh_client
 
     async def fetch_builds_json(self):
         builds_url = "https://api.github.com/repos/gr0vity-dev/nano-node-builder/contents/docker_builder/builds.json"

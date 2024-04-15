@@ -6,6 +6,7 @@ from processors.ct_processor import DataProcessor
 from processors.frontend_processor import format_frontend, format_results
 from adapters.leveldb_adapter import LevelDBStorage
 from database.sql_processor import SqlProcessor
+from adapters.github_client import GitHubClient
 
 import asyncio
 
@@ -13,11 +14,13 @@ import asyncio
 app = Quart(__name__)
 leveldb_storage = LevelDBStorage("data/leveldb_storage")
 sql_processor = SqlProcessor("data/sqlite_storage.db")
-
+gh_client = GitHubClient()
 
 # Update CT data in background to reduce GH Api calls
+
+
 async def scan_and_process_data():
-    processor = DataProcessor(leveldb_storage, sql_processor)
+    processor = DataProcessor(leveldb_storage, sql_processor, gh_client)
     while True:
         print("Scanning for new data...")
         try:
