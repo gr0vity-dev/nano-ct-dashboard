@@ -23,6 +23,16 @@ class GitHubClient:
             logging.error(f"Failed to fetch URL {url}: {e}")
             return None
 
+    async def fetch_git_url(self, url):
+        data = await self.fetch_json(url)
+        if data is None:
+            return None  # Early exit if fetch failed or not found
+        try:
+            return data['git_url']
+        except Exception as e:
+            logging.error(f"Failed to get git_url from JSON {url}: {e}")
+            return None
+
     async def fetch_content_and_decode(self, url):
         data = await self.fetch_json(url)
         if data is None:

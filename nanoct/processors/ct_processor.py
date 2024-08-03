@@ -15,7 +15,8 @@ class DataProcessor:
 
     async def fetch_builds_json(self):
         builds_url = "https://api.github.com/repos/gr0vity-dev/nano-node-builder/contents/docker_builder/builds.json"
-        return await self.github_client.fetch_content_and_decode(builds_url)
+        git_url = await self.github_client.fetch_git_url(builds_url)
+        return await self.github_client.fetch_content_and_decode(git_url)
 
     async def fetch_testrun_json(self, hash):
         test_url = f"https://api.github.com/repos/gr0vity-dev/nano-node-builder/contents/continuous_testing/{hash}.json"
